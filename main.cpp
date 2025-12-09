@@ -20,45 +20,61 @@ int main()
     // Variable de velocidad (cuántos pixeles se mueve por frame)
     float velocidad = 0.5f;
 
-    // 2. BUCLE DEL JUEGO (GAME LOOP)
+   // 2. BUCLE DEL JUEGO (GAME LOOP)
     while (window.isOpen())
     {
-        // --- A. PROCESAR EVENTOS (INPUT) ---
+        // --- A. PROCESAR EVENTOS ---
         sf::Event event;
         while (window.pollEvent(event))
         {
-            // Si le dan a la X de la ventana, cerrar
             if (event.type == sf::Event::Closed)
                 window.close();
         }
 
-        // --- B. LÓGICA / MOVIMIENTO (UPDATE) ---
-        // Aquí preguntamos al teclado directamente
-        
-        // Mover a la Izquierda
+        // --- B. MOVIMIENTO (INPUT) ---
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
-            coche.move(-velocidad, 0.0f); // Restamos a X
+            coche.move(-velocidad, 0.0f);
         }
-        
-        // Mover a la Derecha
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
-            coche.move(velocidad, 0.0f); // Sumamos a X
+            coche.move(velocidad, 0.0f);
         }
-        
-        // Mover Arriba (Opcional, por si quieres esquivar avanzando)
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
-            coche.move(0.0f, -velocidad); // Restamos a Y para subir
+            coche.move(0.0f, -velocidad);
         }
-
-        // Mover Abajo
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
-            coche.move(0.0f, velocidad); // Sumamos a Y para bajar
+            coche.move(0.0f, velocidad);
         }
 
-        // --- C. DIBUJAR (RENDER) ---
-        window.clear(sf::Color::Black); // Limpiamos con fondo negro (asfalto)
-        window.draw(coche);             // Dibujamos el coche
-        window.display();               // Mostramos en pantalla
+        // --- C. LÍMITES DE PANTALLA (NUEVO CÓDIGO) ---
+        // Obtenemos la posición actual del coche (x, y)
+        sf::Vector2f pos = coche.getPosition();
+
+        // 1. Límite Izquierdo (X < 0)
+        if (pos.x < 0) {
+            coche.setPosition(0, pos.y);
+        }
+
+        // 2. Límite Derecho (X > 800 - 50 ancho del coche)
+        // 800 (pantalla) - 50 (coche) = 750
+        if (pos.x > 750) {
+            coche.setPosition(750, pos.y);
+        }
+
+        // 3. Límite Superior (Y < 0)
+        if (pos.y < 0) {
+            coche.setPosition(pos.x, 0);
+        }
+
+        // 4. Límite Inferior (Y > 600 - 100 alto del coche)
+        // 600 (pantalla) - 100 (coche) = 500
+        if (pos.y > 500) {
+            coche.setPosition(pos.x, 500);
+        }
+
+        // --- D. DIBUJAR ---
+        window.clear(sf::Color::Black);
+        window.draw(coche);
+        window.display();
     }
 
     return 0;
