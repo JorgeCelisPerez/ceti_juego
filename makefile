@@ -1,29 +1,37 @@
-# Directorios de origen y destino
+# --- Configuración del Proyecto ---
+APP_NAME := TrafficRacer
 SRC_DIR := src
 BIN_DIR := bin
+INCLUDE_DIR := include
 
-SFML := -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio -lbox2d
+# --- Configuración del Compilador ---
+CXX := g++
+CXXFLAGS := -I$(INCLUDE_DIR) -std=c++17 -Wall
 
-# Obtener todos los archivos .cpp en el directorio de origen
-CPP_FILES := $(wildcard $(SRC_DIR)/*.cpp)
+# Librerías (Estas son las que tienes instaladas)
+LIBS := -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio -lbox2d
 
-# Generar los nombres de los archivos .exe en el directorio de destino
-EXE_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(BIN_DIR)/%.exe,$(CPP_FILES))
+# --- Automagia: Encontrar archivos ---
+# Esto busca TODOS los archivos .cpp (main.cpp Y Game.cpp) y los junta
+SRC_FILES := $(wildcard $(SRC_DIR)/*.cpp)
 
-# Regla para compilar cada archivo .cpp y generar el archivo .exe correspondiente
-$(BIN_DIR)/%.exe: $(SRC_DIR)/%.cpp
-	g++ $< -o $@ $(SFML) -Iinclude
+# Nombre final del ejecutable
+EXECUTABLE := $(BIN_DIR)/$(APP_NAME).exe
 
-# Regla por defecto para compilar todos los archivos .cpp
-all: $(EXE_FILES)
+# --- Reglas ---
 
-# Regla para ejecutar cada archivo .exe
-run%: $(BIN_DIR)/%.exe
-	./$<
+all: $(EXECUTABLE)
 
-# Regla para limpiar los archivos generados
+# Esta regla crea la carpeta bin si no existe y compila todo junto
+$(EXECUTABLE): $(SRC_FILES)
+	@mkdir -p $(BIN_DIR)
+	$(CXX) $(SRC_FILES) -o $@ $(CXXFLAGS) $(LIBS)
+
+# Regla para ejecutar
+run: all
+	./$(EXECUTABLE)
+
 clean:
-	rm -f $(EXE_FILES)
+	rm -f $(BIN_DIR)/*.exe
 
-.PHONY: all clean
-.PHONY: run-%
+.PHONY: all run clean
