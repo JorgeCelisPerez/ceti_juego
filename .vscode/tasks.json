@@ -3,16 +3,13 @@
         {
             "type": "cppbuild",
             "label": "C/C++: g++.exe compilar archivo activo",
-            "command": "C:\\msys64\\ucrt64\\bin\\g++.exe",
+            "command": "C:\\msys64\\mingw64\\bin\\g++.exe",
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
                 "${file}",
                 "-o",
-                "${fileDirname}\\${fileBasenameNoExtension}.exe",
-                "-lsfml-graphics",
-                "-lsfml-window",
-                "-lsfml-system"
+                "${fileDirname}\\${fileBasenameNoExtension}.exe"
             ],
             "options": {
                 "cwd": "${fileDirname}"
