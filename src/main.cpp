@@ -10,6 +10,6 @@ int main() {
         window.clear(sf::Color::Black);
         window.display();
     }
-
+// hola 
     return 0;
 }
