@@ -1,5 +1,9 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <vector>
+#include "Teclado.hpp"
+#include "Enemigo.hpp"
+#include "Gasolina.hpp"
 
 class Game {
 public:
@@ -11,6 +15,9 @@ private:
     void update(sf::Time dt);
     void render();
     void updateRoadScale();
+    void clampPlayer();
+    void checkGasolinaCollisions();
+    void updateGasolinaBar();
 
 private:
     // --- Variables de la Ventana ---
@@ -19,13 +26,52 @@ private:
     
     // --- Recursos (Assets) ---
     sf::Texture mRoadTexture;
+    sf::Texture mGasolinaTexture;
+    sf::Texture mBarBackgroundTexture;
+    sf::Texture mBarGlassTexture;
+    sf::Texture mRedBarTexture;
     
     // --- Entidades del Juego ---
     // Usamos dos sprites para el fondo infinito
     sf::Sprite mRoad1;
     sf::Sprite mRoad2;
+    sf::RectangleShape mPlayer;
     
     // --- Variables de Lógica ---
     float mScrollSpeed;
     float mTextureHeight;
+    float mPlayerSpeed;
+    float mRoadMarginTexturePx; // margen lateral en píxeles de la textura original
+    float mPlayableLeft;
+    float mPlayableRight;
+    bool mDebugBounds;
+    
+    // --- Escalado de Coches ---
+    sf::Vector2f mBaseCarSize;
+    float mReferenceWidth;
+    float mCarScaleFactor;
+    
+    // --- Enemigos y Carriles ---
+    static const int NUM_CARRILES = 4;
+    float mCarrilAncho;
+    float mCarrilLimits[NUM_CARRILES + 1];
+    std::vector<Enemy> mEnemigos;
+    float mSpawnTimer;
+    float mSpawnInterval;
+    
+    // --- Sistema de Gasolina ---
+    std::vector<Gasolina> mGasolinas;
+    float mGasolinaSpawnTimer;
+    float mGasolinaSpawnInterval;
+    float mGasolinaActual;
+    float mGasolinaMax;
+    float mGasolinaConsumoRate;
+    bool mGameOver;
+    
+    // --- UI Barra de Gasolina ---
+    sf::Sprite mBarBackground;
+    sf::Sprite mBarGlass;
+    sf::Sprite mRedBar;
+    sf::Vector2f mBarPosition;
+    sf::Vector2f mBarSize;
 };
