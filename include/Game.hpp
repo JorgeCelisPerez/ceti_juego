@@ -3,6 +3,7 @@
 #include <vector>
 #include "Teclado.hpp"
 #include "Enemigo.hpp"
+#include "Gasolina.hpp"
 
 class Game {
 public:
@@ -15,6 +16,8 @@ private:
     void render();
     void updateRoadScale();
     void clampPlayer();
+    void checkGasolinaCollisions();
+    void updateGasolinaBar();
 
 private:
     // --- Variables de la Ventana ---
@@ -23,6 +26,10 @@ private:
     
     // --- Recursos (Assets) ---
     sf::Texture mRoadTexture;
+    sf::Texture mGasolinaTexture;
+    sf::Texture mBarBackgroundTexture;
+    sf::Texture mBarGlassTexture;
+    sf::Texture mRedBarTexture;
     
     // --- Entidades del Juego ---
     // Usamos dos sprites para el fondo infinito
@@ -51,4 +58,20 @@ private:
     std::vector<Enemy> mEnemigos;
     float mSpawnTimer;
     float mSpawnInterval;
+    
+    // --- Sistema de Gasolina ---
+    std::vector<Gasolina> mGasolinas;
+    float mGasolinaSpawnTimer;
+    float mGasolinaSpawnInterval;
+    float mGasolinaActual;
+    float mGasolinaMax;
+    float mGasolinaConsumoRate;
+    bool mGameOver;
+    
+    // --- UI Barra de Gasolina ---
+    sf::Sprite mBarBackground;
+    sf::Sprite mBarGlass;
+    sf::Sprite mRedBar;
+    sf::Vector2f mBarPosition;
+    sf::Vector2f mBarSize;
 };
