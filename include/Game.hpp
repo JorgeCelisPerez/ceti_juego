@@ -10,10 +10,12 @@ private:
     void processEvents();
     void update(sf::Time dt);
     void render();
+    void updateRoadScale();
 
 private:
     // --- Variables de la Ventana ---
     sf::RenderWindow mWindow;
+    bool mIsFullscreen;
     
     // --- Recursos (Assets) ---
     sf::Texture mRoadTexture;
