@@ -17,6 +17,7 @@ private:
     void updateRoadScale();
     void clampPlayer();
     void checkGasolinaCollisions();
+    void checkEnemyCollisions();
     void updateGasolinaBar();
 
 private:

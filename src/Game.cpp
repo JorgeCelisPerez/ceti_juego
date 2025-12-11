@@ -205,6 +205,9 @@ void Game::update(sf::Time dt) {
     
     // Comprobar colisiones con gasolina
     checkGasolinaCollisions();
+
+    // Comprobar colisiones con enemigos
+    checkEnemyCollisions();
     
     // Eliminar enemigos fuera de pantalla
     float windowHeight = static_cast<float>(mWindow.getSize().y);
@@ -392,6 +395,29 @@ void Game::checkGasolinaCollisions() {
     }
 }
 
+void Game::checkEnemyCollisions() {
+    const float collisionPenalty = 25.0f; // Penalización de gasolina por choque
+    sf::FloatRect playerBounds = mPlayer.getGlobalBounds();
+
+    for (auto it = mEnemigos.begin(); it != mEnemigos.end(); ) {
+        sf::FloatRect enemyBounds = it->getShape().getGlobalBounds();
+        
+        if (playerBounds.intersects(enemyBounds)) {
+            // Aplicar penalización de gasolina
+            mGasolinaActual -= collisionPenalty;
+            if (mGasolinaActual < 0.0f) {
+                mGasolinaActual = 0.0f;
+            }
+            updateGasolinaBar();
+            
+            // Eliminar el enemigo colisionado para evitar penalizaciones múltiples
+            it = mEnemigos.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
 void Game::updateGasolinaBar() {
     float windowWidth = static_cast<float>(mWindow.getSize().x);
     float windowHeight = static_cast<float>(mWindow.getSize().y);
@@ -416,17 +442,20 @@ void Game::updateGasolinaBar() {
     mBarGlass.setPosition(mBarPosition);
     mBarGlass.setScale(scaleX_Glass, scaleY_Glass);
     
-    // Configurar barra roja horizontal (crece de izquierda a derecha)
+    // Configurar barra roja usando setTextureRect para evitar distorsión al escalar
     float porcentaje = mGasolinaActual / mGasolinaMax;
-    float barraAncho = mBarSize.x * porcentaje;
-    
-    // Asegurar que no se salga del lado izquierdo
-    if (barraAncho < 0.1f) barraAncho = 0.1f;
-    
-    // La barra roja empieza desde la izquierda y crece hacia la derecha - misma altura que el fondo
-    mRedBar.setPosition(mBarPosition.x, mBarPosition.y);
-    mRedBar.setScale(
-        barraAncho / mRedBarTexture.getSize().x,
-        scaleY_BG  // Usar la misma escala vertical que el fondo
-    );
+    if (porcentaje < 0.0f) {
+        porcentaje = 0.0f;
+    }
+
+    // La barra roja debe tener la misma escala que el fondo para que su tamaño base coincida
+    mRedBar.setPosition(mBarPosition);
+    mRedBar.setScale(scaleX_BG, scaleY_BG);
+
+    // Calcular el ancho del rectángulo de la textura a mostrar
+    sf::Vector2u redBarTextureSize = mRedBarTexture.getSize();
+    int rectWidth = static_cast<int>(redBarTextureSize.x * porcentaje);
+
+    // Aplicar el rectángulo de textura para mostrar solo la porción correcta
+    mRedBar.setTextureRect(sf::IntRect(0, 0, rectWidth, redBarTextureSize.y));
 }
