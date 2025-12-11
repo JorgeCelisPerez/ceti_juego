@@ -21,6 +21,9 @@ Game::Game()
     , mGasolinaMax(100.0f)
     , mGasolinaConsumoRate(5.0f)
     , mGameOver(false)
+    , mBoundaryPenalty(10.0f)
+    , mBoundaryContinuousPenalty(2.0f)
+    , mIsTouchingBoundary(false)
 {
     mWindow.setVerticalSyncEnabled(true);
 
@@ -173,6 +176,26 @@ void Game::update(sf::Time dt) {
     float input = getHorizontalInput();
     float deltaX = input * mPlayerSpeed * timeSeconds;
     mPlayer.move(deltaX, 0.f);
+
+    // Penalización por tocar el borde de la carretera
+    sf::Vector2f pos = mPlayer.getPosition();
+    float halfW = mPlayer.getSize().x * 0.5f;
+    bool isCurrentlyTouching = (pos.x - halfW < mPlayableLeft) || (pos.x + halfW > mPlayableRight);
+
+    if (isCurrentlyTouching) {
+        if (!mIsTouchingBoundary) {
+            // Primer toque - penalización grande
+            mGasolinaActual -= mBoundaryPenalty;
+        } else {
+            // Contacto continuo - penalización pequeña por segundo
+            mGasolinaActual -= mBoundaryContinuousPenalty * timeSeconds;
+        }
+
+        if (mGasolinaActual < 0.0f) mGasolinaActual = 0.0f;
+        updateGasolinaBar();
+    }
+    mIsTouchingBoundary = isCurrentlyTouching;
+
     clampPlayer();
     
     // Spawn de enemigos

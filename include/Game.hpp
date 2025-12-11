@@ -47,6 +47,11 @@ private:
     float mPlayableRight;
     bool mDebugBounds;
     
+    // --- Lógica de Colisión con Límites ---
+    float mBoundaryPenalty;
+    float mBoundaryContinuousPenalty;
+    bool mIsTouchingBoundary;
+    
     // --- Escalado de Coches ---
     sf::Vector2f mBaseCarSize;
     float mReferenceWidth;
