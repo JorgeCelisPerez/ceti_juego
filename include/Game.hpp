@@ -39,6 +39,11 @@ private:
     float mPlayableRight;
     bool mDebugBounds;
     
+    // --- Escalado de Coches ---
+    sf::Vector2f mBaseCarSize;
+    float mReferenceWidth;
+    float mCarScaleFactor;
+    
     // --- Enemigos y Carriles ---
     static const int NUM_CARRILES = 4;
     float mCarrilAncho;

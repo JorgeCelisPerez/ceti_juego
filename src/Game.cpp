@@ -9,6 +9,9 @@ Game::Game()
     , mPlayerSpeed(500.f)
     , mRoadMarginTexturePx(800.f)
     , mDebugBounds(false)
+    , mBaseCarSize(80.f, 140.f)
+    , mReferenceWidth(0.f)
+    , mCarScaleFactor(1.f)
     , mCarrilAncho(0.f)
     , mSpawnTimer(0.f)
     , mSpawnInterval(1.5f)
@@ -23,9 +26,12 @@ Game::Game()
 
     mRoad1.setTexture(mRoadTexture);
     mRoad2.setTexture(mRoadTexture);
+    
+    // Guardar ancho de referencia (fullscreen inicial)
+    mReferenceWidth = static_cast<float>(mWindow.getSize().x);
 
-    // Configurar jugador (rectángulo placeholder)
-    mPlayer.setSize(sf::Vector2f(100.f, 170.f));
+    // Configurar jugador (rectángulo placeholder con tamaño base)
+    mPlayer.setSize(mBaseCarSize);
     sf::Vector2f pSize = mPlayer.getSize();
     mPlayer.setOrigin(pSize.x * 0.5f, pSize.y * 0.5f);
     mPlayer.setFillColor(sf::Color(255, 80, 80));
@@ -102,7 +108,7 @@ void Game::update(sf::Time dt) {
         mSpawnTimer = 0.f;
         int randomLane = rand() % NUM_CARRILES;
         float laneX = mCarrilLimits[randomLane] + (mCarrilAncho * 0.5f);
-        mEnemigos.emplace_back(laneX, -200.f, randomLane, 400.f, mCarrilLimits[randomLane], mCarrilLimits[randomLane + 1]);
+        mEnemigos.emplace_back(laneX, -200.f, randomLane, 400.f, mCarrilLimits[randomLane], mCarrilLimits[randomLane + 1], mBaseCarSize, mCarScaleFactor);
     }
     
     // Actualizar enemigos
@@ -190,6 +196,9 @@ void Game::updateRoadScale() {
     float marginScaled = mRoadMarginTexturePx * scaleX;
     mPlayableLeft = marginScaled;
     mPlayableRight = windowWidth - marginScaled;
+    
+    // Calcular factor de escala para coches
+    mCarScaleFactor = windowWidth / mReferenceWidth;
 
     // CAMBIO 2: setPosition usa argumentos directos (x, y) en vez de vectores {}
     mRoad1.setPosition(0.f, 0.f);
@@ -200,6 +209,24 @@ void Game::updateRoadScale() {
     for (int i = 0; i <= NUM_CARRILES; i++) {
         mCarrilLimits[i] = mPlayableLeft + (i * mCarrilAncho);
     }
+    
+    // Actualizar tamaño del jugador con nueva escala
+    sf::Vector2f newPlayerSize(mBaseCarSize.x * mCarScaleFactor, mBaseCarSize.y * mCarScaleFactor);
+    mPlayer.setSize(newPlayerSize);
+    mPlayer.setOrigin(newPlayerSize.x * 0.5f, newPlayerSize.y * 0.5f);
+    
+    // Reposicionar y reescalar enemigos existentes según su carril
+    for (auto& enemy : mEnemigos) {
+        int lane = enemy.getLane();
+        float newLaneX = mCarrilLimits[lane] + (mCarrilAncho * 0.5f);
+        enemy.updateLanePosition(newLaneX, mCarrilLimits[lane], mCarrilLimits[lane + 1]);
+        enemy.updateSize(mBaseCarSize, mCarScaleFactor);
+    }
+    
+    // Reposicionar jugador en Y (mantener en 75% de la nueva altura)
+    sf::Vector2f playerPos = mPlayer.getPosition();
+    float newWindowHeight = static_cast<float>(mWindow.getSize().y);
+    mPlayer.setPosition(playerPos.x, newWindowHeight * 0.75f);
 
     clampPlayer();
 }
