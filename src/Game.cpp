@@ -6,6 +6,9 @@ Game::Game()
     : mWindow(sf::VideoMode::getDesktopMode(), "Traffic Racer - Estructura POO", sf::Style::Fullscreen) 
     , mScrollSpeed(500.f)
     , mIsFullscreen(true)
+    , mPlayerSpeed(500.f)
+    , mRoadMarginTexturePx(800.f)
+    , mDebugBounds(false)
 {
     mWindow.setVerticalSyncEnabled(true);
 
@@ -18,8 +21,19 @@ Game::Game()
     mRoad1.setTexture(mRoadTexture);
     mRoad2.setTexture(mRoadTexture);
 
+    // Configurar jugador (rectángulo placeholder)
+    mPlayer.setSize(sf::Vector2f(100.f, 170.f));
+    sf::Vector2f pSize = mPlayer.getSize();
+    mPlayer.setOrigin(pSize.x * 0.5f, pSize.y * 0.5f);
+    mPlayer.setFillColor(sf::Color(255, 80, 80));
+
     // Inicializar escala y posiciones
     updateRoadScale();
+
+    float windowWidth = static_cast<float>(mWindow.getSize().x);
+    float windowHeight = static_cast<float>(mWindow.getSize().y);
+    mPlayer.setPosition(windowWidth * 0.5f, windowHeight * 0.75f);
+    clampPlayer();
 }
 
 void Game::run() {
@@ -54,6 +68,11 @@ void Game::processEvents() {
                 mWindow.setVerticalSyncEnabled(true);
                 updateRoadScale();
             }
+
+            if (event.key.code == sf::Keyboard::F1) {
+                mDebugBounds = !mDebugBounds;
+            }
+
         }
     }
 }
@@ -61,6 +80,12 @@ void Game::processEvents() {
 void Game::update(sf::Time dt) {
     float timeSeconds = dt.asSeconds();
     float moveAmount = mScrollSpeed * timeSeconds;
+
+    // Input horizontal del jugador
+    float input = getHorizontalInput();
+    float deltaX = input * mPlayerSpeed * timeSeconds;
+    mPlayer.move(deltaX, 0.f);
+    clampPlayer();
 
     // Mover hacia abajo
     mRoad1.move(0.f, moveAmount);
@@ -80,6 +105,19 @@ void Game::render() {
     mWindow.clear();
     mWindow.draw(mRoad1);
     mWindow.draw(mRoad2);
+    mWindow.draw(mPlayer);
+
+    if (mDebugBounds) {
+        float windowHeight = static_cast<float>(mWindow.getSize().y);
+        sf::RectangleShape playableRect;
+        playableRect.setPosition(mPlayableLeft, 0.f);
+        playableRect.setSize(sf::Vector2f(mPlayableRight - mPlayableLeft, windowHeight));
+        playableRect.setFillColor(sf::Color(0, 255, 0, 40));
+        playableRect.setOutlineThickness(2.f);
+        playableRect.setOutlineColor(sf::Color(0, 200, 0, 180));
+        mWindow.draw(playableRect);
+    }
+
     mWindow.display();
 }
 
@@ -101,7 +139,23 @@ void Game::updateRoadScale() {
     // Calcular la altura escalada para la lógica de scroll
     mTextureHeight = originalHeight * scaleY;
 
+    float marginScaled = mRoadMarginTexturePx * scaleX;
+    mPlayableLeft = marginScaled;
+    mPlayableRight = windowWidth - marginScaled;
+
     // CAMBIO 2: setPosition usa argumentos directos (x, y) en vez de vectores {}
     mRoad1.setPosition(0.f, 0.f);
     mRoad2.setPosition(0.f, -mTextureHeight);
+
+    clampPlayer();
+}
+
+void Game::clampPlayer() {
+    sf::Vector2f pos = mPlayer.getPosition();
+    float halfW = mPlayer.getSize().x * 0.5f;
+
+    if (pos.x < mPlayableLeft + halfW) pos.x = mPlayableLeft + halfW;
+    if (pos.x > mPlayableRight - halfW) pos.x = mPlayableRight - halfW;
+
+    mPlayer.setPosition(pos.x, pos.y);
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include "Teclado.hpp"
 
 class Game {
 public:
@@ -11,6 +12,7 @@ private:
     void update(sf::Time dt);
     void render();
     void updateRoadScale();
+    void clampPlayer();
 
 private:
     // --- Variables de la Ventana ---
@@ -24,8 +26,14 @@ private:
     // Usamos dos sprites para el fondo infinito
     sf::Sprite mRoad1;
     sf::Sprite mRoad2;
+    sf::RectangleShape mPlayer;
     
     // --- Variables de Lógica ---
     float mScrollSpeed;
     float mTextureHeight;
+    float mPlayerSpeed;
+    float mRoadMarginTexturePx; // margen lateral en píxeles de la textura original
+    float mPlayableLeft;
+    float mPlayableRight;
+    bool mDebugBounds;
 };
