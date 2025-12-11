@@ -9,6 +9,9 @@ Game::Game()
     , mPlayerSpeed(500.f)
     , mRoadMarginTexturePx(800.f)
     , mDebugBounds(false)
+    , mCarrilAncho(0.f)
+    , mSpawnTimer(0.f)
+    , mSpawnInterval(1.5f)
 {
     mWindow.setVerticalSyncEnabled(true);
 
@@ -29,6 +32,12 @@ Game::Game()
 
     // Inicializar escala y posiciones
     updateRoadScale();
+    
+    // Calcular límites de carriles
+    mCarrilAncho = (mPlayableRight - mPlayableLeft) / NUM_CARRILES;
+    for (int i = 0; i <= NUM_CARRILES; i++) {
+        mCarrilLimits[i] = mPlayableLeft + (i * mCarrilAncho);
+    }
 
     float windowWidth = static_cast<float>(mWindow.getSize().x);
     float windowHeight = static_cast<float>(mWindow.getSize().y);
@@ -86,6 +95,28 @@ void Game::update(sf::Time dt) {
     float deltaX = input * mPlayerSpeed * timeSeconds;
     mPlayer.move(deltaX, 0.f);
     clampPlayer();
+    
+    // Spawn de enemigos
+    mSpawnTimer += timeSeconds;
+    if (mSpawnTimer >= mSpawnInterval) {
+        mSpawnTimer = 0.f;
+        int randomLane = rand() % NUM_CARRILES;
+        float laneX = mCarrilLimits[randomLane] + (mCarrilAncho * 0.5f);
+        mEnemigos.emplace_back(laneX, -200.f, randomLane, 400.f, mCarrilLimits[randomLane], mCarrilLimits[randomLane + 1]);
+    }
+    
+    // Actualizar enemigos
+    for (auto& enemy : mEnemigos) {
+        enemy.update(timeSeconds);
+    }
+    
+    // Eliminar enemigos fuera de pantalla
+    float windowHeight = static_cast<float>(mWindow.getSize().y);
+    mEnemigos.erase(
+        std::remove_if(mEnemigos.begin(), mEnemigos.end(),
+            [windowHeight](const Enemy& e) { return e.isOutOfBounds(windowHeight); }),
+        mEnemigos.end()
+    );
 
     // Mover hacia abajo
     mRoad1.move(0.f, moveAmount);
@@ -105,10 +136,18 @@ void Game::render() {
     mWindow.clear();
     mWindow.draw(mRoad1);
     mWindow.draw(mRoad2);
+    
+    // Dibujar enemigos
+    for (auto& enemy : mEnemigos) {
+        mWindow.draw(enemy.getShape());
+    }
+    
     mWindow.draw(mPlayer);
 
     if (mDebugBounds) {
         float windowHeight = static_cast<float>(mWindow.getSize().y);
+        
+        // Dibujar rectángulo del área jugable
         sf::RectangleShape playableRect;
         playableRect.setPosition(mPlayableLeft, 0.f);
         playableRect.setSize(sf::Vector2f(mPlayableRight - mPlayableLeft, windowHeight));
@@ -116,6 +155,15 @@ void Game::render() {
         playableRect.setOutlineThickness(2.f);
         playableRect.setOutlineColor(sf::Color(0, 200, 0, 180));
         mWindow.draw(playableRect);
+        
+        // Dibujar límites de carriles
+        for (int i = 1; i < NUM_CARRILES; i++) {
+            sf::RectangleShape linea;
+            linea.setSize(sf::Vector2f(2.f, windowHeight));
+            linea.setPosition(mCarrilLimits[i], 0.f);
+            linea.setFillColor(sf::Color(200, 100, 0, 150));
+            mWindow.draw(linea);
+        }
     }
 
     mWindow.display();
@@ -146,6 +194,12 @@ void Game::updateRoadScale() {
     // CAMBIO 2: setPosition usa argumentos directos (x, y) en vez de vectores {}
     mRoad1.setPosition(0.f, 0.f);
     mRoad2.setPosition(0.f, -mTextureHeight);
+    
+    // Recalcular límites de carriles
+    mCarrilAncho = (mPlayableRight - mPlayableLeft) / NUM_CARRILES;
+    for (int i = 0; i <= NUM_CARRILES; i++) {
+        mCarrilLimits[i] = mPlayableLeft + (i * mCarrilAncho);
+    }
 
     clampPlayer();
 }

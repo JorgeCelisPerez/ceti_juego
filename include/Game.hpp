@@ -1,6 +1,8 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <vector>
 #include "Teclado.hpp"
+#include "Enemigo.hpp"
 
 class Game {
 public:
@@ -36,4 +38,12 @@ private:
     float mPlayableLeft;
     float mPlayableRight;
     bool mDebugBounds;
+    
+    // --- Enemigos y Carriles ---
+    static const int NUM_CARRILES = 4;
+    float mCarrilAncho;
+    float mCarrilLimits[NUM_CARRILES + 1];
+    std::vector<Enemy> mEnemigos;
+    float mSpawnTimer;
+    float mSpawnInterval;
 };
