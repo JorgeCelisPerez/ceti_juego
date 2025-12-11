@@ -14,10 +14,24 @@ Game::Game()
         exit(1);
     }
 
-    mTextureHeight = static_cast<float>(mRoadTexture.getSize().y);
+    // Obtener tamaño original de la imagen (2752x1536)
+    sf::Vector2u textureSize = mRoadTexture.getSize();
+    float originalWidth = static_cast<float>(textureSize.x);
+    float originalHeight = static_cast<float>(textureSize.y);
+
+    // Calcular escala para que ocupe todo el ancho de la ventana (1280px)
+    float scaleX = 1280.f / originalWidth;
+    float scaleY = 1280.f / originalWidth;  // Mantener proporción con respecto al ancho
 
     mRoad1.setTexture(mRoadTexture);
     mRoad2.setTexture(mRoadTexture);
+
+    // Aplicar escala a ambos sprites
+    mRoad1.setScale(scaleX, scaleY);
+    mRoad2.setScale(scaleX, scaleY);
+
+    // Calcular la altura escalada para la lógica de scroll
+    mTextureHeight = originalHeight * scaleY;
 
     // CAMBIO 2: setPosition usa argumentos directos (x, y) en vez de vectores {}
     mRoad1.setPosition(0.f, 0.f);
