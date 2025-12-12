@@ -25,7 +25,7 @@ Game::Game()
       mGasolinaMax(100.0f),
       mGasolinaConsumoRate(5.0f),
       mBoundaryPenalty(10.0f),
-      mBoundaryContinuousPenalty(2.0f)
+      mBoundaryContinuousPenalty(15.0f)
 {
     mWindow.setVerticalSyncEnabled(true);
     srand(static_cast<unsigned int>(time(NULL)));
@@ -139,15 +139,20 @@ void Game::update(sf::Time dt) {
 
                 float input = getHorizontalInput();
                 mPlayer.move(input * mPlayerSpeed * timeSeconds, 0.f);
-                clampPlayer();
 
                 sf::Vector2f pos = mPlayer.getPosition();
                 float halfW = mPlayer.getSize().x * 0.5f;
                 bool isCurrentlyTouching = (pos.x - halfW < mPlayableLeft) || (pos.x + halfW > mPlayableRight);
+
                 if (isCurrentlyTouching) {
+                    // Si ya estaba tocando, aplica la penalización continua.
+                    // Si es la primera vez, aplica la penalización inicial.
                     mGasolinaActual -= (mIsTouchingBoundary ? mBoundaryContinuousPenalty * timeSeconds : mBoundaryPenalty);
                 }
                 mIsTouchingBoundary = isCurrentlyTouching;
+
+                // Ahora, después de verificar y aplicar la penalización, corregimos la posición.
+                clampPlayer();
 
                 mSpawnTimer += timeSeconds;
                 if (mSpawnTimer >= mSpawnInterval) {
