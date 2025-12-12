@@ -87,8 +87,8 @@ Game::Game()
     if (!mEnemyTextures[5].loadFromFile("assets/images/Police.png")) { exit(1); }
     if (!mEnemyTextures[6].loadFromFile("assets/images/taxi.png")) { exit(1); }
 
-    mRoad1.setTexture(mRoadTexture);
-    mRoad2.setTexture(mRoadTexture);
+    mRoad1.setTexture(mGestorTemas.getTexturaActual());
+    mRoad2.setTexture(mGestorTemas.getTexturaActual());
     
     mReferenceWidth = static_cast<float>(mWindow.getSize().x);
 
@@ -348,6 +348,17 @@ void Game::update(sf::Time dt) {
                     
                     // Actualizar dificultad basada en el score (se recalcula continuamente)
                     mDifficulty.updateFromScore(mScore.getScore());
+                    
+                    // Actualizar tema basado en el score
+                    mGestorTemas.updateFromScore(mScore.getScore());
+                    mGestorTemas.updateFade(timeSeconds);
+                    
+                    if (mGestorTemas.hayCambioTema()) {
+                        // Aplicar nueva textura a los sprites de la carretera
+                        mRoad1.setTexture(mGestorTemas.getTexturaActual());
+                        mRoad2.setTexture(mGestorTemas.getTexturaActual());
+                        mGestorTemas.confirmarCambio();
+                    }
                 }
 
                 mSpawnTimer += timeSeconds;
@@ -551,6 +562,15 @@ void Game::render() {
                 mWindow.draw(playableArea);
             }
 
+            // Dibujar overlay de fade si hay transición de tema
+            if (mGestorTemas.estaMostrandoFade()) {
+                sf::RectangleShape fadeOverlay;
+                fadeOverlay.setSize(sf::Vector2f(static_cast<float>(mWindow.getSize().x), 
+                                                 static_cast<float>(mWindow.getSize().y)));
+                fadeOverlay.setFillColor(sf::Color(0, 0, 0, static_cast<sf::Uint8>(mGestorTemas.getOpacidadFade())));
+                mWindow.draw(fadeOverlay);
+            }
+            
             if (mGameState == GameState::GameOver) {
                 mGameOverScreen.draw(mWindow);
             }

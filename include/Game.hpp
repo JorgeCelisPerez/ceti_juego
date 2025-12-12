@@ -12,6 +12,7 @@
 #include "Difficulty.hpp"
 #include "PauseMenu.hpp"
 #include "ControlsDisplay.hpp"
+#include "GestorTemas.hpp"
 
 class Game {
 public:
@@ -42,6 +43,7 @@ private:
     HighScore mHighScore;
     ControlsDisplay mControlsDisplay;
     DifficultyManager mDifficulty;
+    GestorTemas mGestorTemas;
     bool mIsFullscreen;
     
     // --- Recursos (Assets) ---
