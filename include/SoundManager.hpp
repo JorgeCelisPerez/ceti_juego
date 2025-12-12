@@ -26,9 +26,6 @@ public:
     void resumeEngineLoop();
     void pauseCountdownSound();
     void resumeCountdownSound();
-    void changeEngineLoop(int loopNumber);  // 1-7
-    int getCurrentEngineLoop() const;
-    void updateEngineLoop();  // Actualizar el loop para recortar 1 seg después de la primera reproducción
     
 private:
     sf::SoundBuffer mItemBuffer;
@@ -49,10 +46,8 @@ private:
     sf::SoundBuffer mEngineRoaringBuffer;
     sf::Sound mEngineRoaringSound;
     
-    // Sistema de loops de motor (7 opciones)
-    std::vector<sf::SoundBuffer> mEngineLoopBuffers;
-    sf::Music mEngineLoop;  // Usar Music para loops largos
-    int mCurrentEngineLoop;
+    // Sistema de loop de motor
+    sf::Music mEngineLoop;
     std::vector<std::string> mEngineLoopFiles;
     
     float mVolume;

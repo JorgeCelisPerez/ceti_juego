@@ -3,9 +3,6 @@
 #include <ctime>
 #include <cstdlib>
 
-// La definición de la variable estática debe estar aquí, en el ámbito global.
-// Pero como la hemos movido a GameOverScreen, ya no es necesaria aquí.
-
 Game::Game()
     : mWindow(sf::VideoMode::getDesktopMode(), "Traffic Racer", sf::Style::Fullscreen),
       mMenu(mWindow),
@@ -202,16 +199,10 @@ void Game::processEvents() {
                         mDebugBounds = !mDebugBounds;
                         mControlsDisplay.setDebugMode(mDebugBounds);
                         if (mDebugBounds) {
-                            std::cout << "\n=== MODO DEBUG ACTIVADO ===" << std::endl;
-                            std::cout << "Controles:" << std::endl;
-                            std::cout << "  F2: Mostrar coordenadas actuales" << std::endl;
-                            std::cout << "  1-2: Cambiar loop de motor (actual: " << mSoundManager.getCurrentEngineLoop() << ")" << std::endl;
+                            std::cout << "\n=== MODO DEBUG: Hitboxes activadas ===" << std::endl;
+                        } else {
+                            std::cout << "\n=== MODO DEBUG: Desactivado ===" << std::endl;
                         }
-                    }
-                    // Cambiar loop de motor con números 1-2 (solo en modo debug)
-                    if (mDebugBounds) {
-                        if (event.key.code == sf::Keyboard::Num1) mSoundManager.changeEngineLoop(1);
-                        else if (event.key.code == sf::Keyboard::Num2) mSoundManager.changeEngineLoop(2);
                     }
                     if (event.key.code == sf::Keyboard::F11) {
                         toggleFullscreen();
@@ -222,52 +213,6 @@ void Game::processEvents() {
                         mGameState = GameState::Paused;
                         mSoundManager.pauseEngineLoop();
                         mSoundManager.pauseCountdownSound();
-                    }
-                    
-                    // Ajustar posición del High Score (Numpad)
-                    if (mDebugBounds) {
-                        if (event.key.code == sf::Keyboard::Numpad8) mHighScoreOffsetY -= 5.0f;
-                        if (event.key.code == sf::Keyboard::Numpad2) mHighScoreOffsetY += 5.0f;
-                        if (event.key.code == sf::Keyboard::Numpad4) mHighScoreOffsetX -= 5.0f;
-                        if (event.key.code == sf::Keyboard::Numpad6) mHighScoreOffsetX += 5.0f;
-                        
-                        // --- CARRILES YA FIJOS ---
-                        // static int divisionSeleccionada = 2;
-                        // if (event.key.code == sf::Keyboard::Num1) {
-                        //     divisionSeleccionada = 1;
-                        //     std::cout << "División seleccionada: 1 (izquierda)" << std::endl;
-                        // }
-                        // if (event.key.code == sf::Keyboard::Num2) {
-                        //     divisionSeleccionada = 2;
-                        //     std::cout << "División seleccionada: 2 (centro)" << std::endl;
-                        // }
-                        // if (event.key.code == sf::Keyboard::Num3) {
-                        //     divisionSeleccionada = 3;
-                        //     std::cout << "División seleccionada: 3 (derecha)" << std::endl;
-                        // }
-                        // if (event.key.code == sf::Keyboard::Q) {
-                        //     if (divisionSeleccionada == 1) mDivision1Offset -= 2.0f;
-                        //     else if (divisionSeleccionada == 2) mDivision2Offset -= 2.0f;
-                        //     else if (divisionSeleccionada == 3) mDivision3Offset -= 2.0f;
-                        //     updateRoadScale();
-                        // }
-                        // if (event.key.code == sf::Keyboard::E) {
-                        //     if (divisionSeleccionada == 1) mDivision1Offset += 2.0f;
-                        //     else if (divisionSeleccionada == 2) mDivision2Offset += 2.0f;
-                        //     else if (divisionSeleccionada == 3) mDivision3Offset += 2.0f;
-                        //     updateRoadScale();
-                        // }
-                        
-                        // Mostrar coordenadas actuales de ControlsDisplay
-                        if (event.key.code == sf::Keyboard::F2) {
-                            mControlsDisplay.printCoordinates();
-                            
-                            // Mostrar coordenadas del texto Combustible
-                            sf::Vector2f combustiblePos = mCombustibleText.getPosition();
-                            std::cout << "\n=== Texto Combustible ===" << std::endl;
-                            std::cout << "X: " << combustiblePos.x << ", Y: " << combustiblePos.y << std::endl;
-                            std::cout << "Offset X: " << mCombustibleOffsetX << ", Offset Y: " << mCombustibleOffsetY << std::endl;
-                        }
                     }
                 }
                 break;
@@ -346,9 +291,6 @@ void Game::update(sf::Time dt) {
                 float timeSeconds = dt.asSeconds();
                 mCountdown.update(timeSeconds);
                 
-                // Actualizar loop de motor
-                mSoundManager.updateEngineLoop();
-                
                 // Actualizar escala del countdown según el tamaño de ventana
                 float windowWidth = static_cast<float>(mWindow.getSize().x);
                 float windowHeight = static_cast<float>(mWindow.getSize().y);
@@ -363,9 +305,6 @@ void Game::update(sf::Time dt) {
         case GameState::Playing:
             {
                 float timeSeconds = dt.asSeconds();
-                
-                // Actualizar loop de motor
-                mSoundManager.updateEngineLoop();
                 
                 mGasolinaActual -= mGasolinaConsumoRate * timeSeconds;
                 if (mGasolinaActual <= 0) {
@@ -398,7 +337,7 @@ void Game::update(sf::Time dt) {
                 if (mRoad1.getPosition().y >= mTextureHeight) mRoad1.setPosition(0.f, mRoad2.getPosition().y - mTextureHeight);
                 if (mRoad2.getPosition().y >= mTextureHeight) mRoad2.setPosition(0.f, mRoad1.getPosition().y - mTextureHeight);
 
-                float input = getHorizontalInput(mDebugBounds);
+                float input = getHorizontalInput();
                 mPlayer.move(input * mPlayerSpeed * timeSeconds, 0.f);
 
                 sf::Vector2f pos = mPlayer.getPosition();
@@ -523,13 +462,6 @@ void Game::update(sf::Time dt) {
 
                 ColisionManager::checkGasolinaCollisions(mPlayer, mGasolinas, mGasolinaActual, mGasolinaMax, mSoundManager);
                 ColisionManager::checkEnemyCollisions(mPlayer, mEnemigos, mGasolinaActual, 25.0f, mSoundManager);
-
-                // Actualizar posiciones con offsets si está en modo debug
-                if (mDebugBounds) {
-                    float windowWidth = static_cast<float>(mWindow.getSize().x);
-                    mScore.update(windowWidth, windowHeight, mScoreOffsetX, mScoreOffsetY);
-                    mHighScore.update(windowWidth, windowHeight, mHighScoreOffsetX, mHighScoreOffsetY);
-                }
                 
                 updateGasolinaBar();
             }

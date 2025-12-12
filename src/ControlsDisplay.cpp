@@ -5,15 +5,7 @@
 ControlsDisplay::ControlsDisplay() 
     : mBaseResolutionWidth(1920.0f), 
       mBaseResolutionHeight(1080.0f),
-      mDebugMode(false),
-      mSelectedElement(0),
-      mMoveLabelIndex(0),
-      mArrowStartIndex(0),
-      mPauseLabelIndex(1),
-      mPauseKeysStartIndex(4),
-      mF11LabelIndex(2),
-      mF11KeyIndex(6),
-      mEnterKeyIndex(7) {
+      mDebugMode(false) {
     
     // Cargar fuente
     if (!mFont.loadFromFile("assets/fonts/Speed Rusher.ttf")) {
@@ -53,101 +45,6 @@ ControlsDisplay::ControlsDisplay()
 
 void ControlsDisplay::setDebugMode(bool debug) {
     mDebugMode = debug;
-}
-
-void ControlsDisplay::selectElement(int elementIndex) {
-    mSelectedElement = elementIndex;
-}
-
-void ControlsDisplay::moveSelected(float offsetX, float offsetY) {
-    if (mSelectedElement == 0) return;
-    
-    // 1 = moveLabel, 2 = arrows, 3 = pauseLabel, 4 = pauseKeys, 5 = f11Label, 6 = f11Key
-    if (mSelectedElement == 1 && mMoveLabelIndex < mLabels.size()) {
-        sf::Vector2f pos = mLabels[mMoveLabelIndex].getPosition();
-        mLabels[mMoveLabelIndex].setPosition(pos.x + offsetX, pos.y + offsetY);
-    }
-    else if (mSelectedElement == 2) {
-        // Mover las 4 flechas (indices 0-3 en mKeySprites)
-        for (int i = 0; i < 4 && i < mKeySprites.size(); i++) {
-            sf::Vector2f pos = mKeySprites[i].getPosition();
-            mKeySprites[i].setPosition(pos.x + offsetX, pos.y + offsetY);
-        }
-    }
-    else if (mSelectedElement == 3 && mPauseLabelIndex < mLabels.size()) {
-        sf::Vector2f pos = mLabels[mPauseLabelIndex].getPosition();
-        mLabels[mPauseLabelIndex].setPosition(pos.x + offsetX, pos.y + offsetY);
-    }
-    else if (mSelectedElement == 4) {
-        // Mover P y ESC (indices 4-5 en mKeySprites)
-        for (int i = 4; i < 6 && i < mKeySprites.size(); i++) {
-            sf::Vector2f pos = mKeySprites[i].getPosition();
-            mKeySprites[i].setPosition(pos.x + offsetX, pos.y + offsetY);
-        }
-    }
-    else if (mSelectedElement == 5 && mF11LabelIndex < mLabels.size()) {
-        sf::Vector2f pos = mLabels[mF11LabelIndex].getPosition();
-        mLabels[mF11LabelIndex].setPosition(pos.x + offsetX, pos.y + offsetY);
-    }
-    else if (mSelectedElement == 6 && mF11KeyIndex < mKeySprites.size()) {
-        sf::Vector2f pos = mKeySprites[mF11KeyIndex].getPosition();
-        mKeySprites[mF11KeyIndex].setPosition(pos.x + offsetX, pos.y + offsetY);
-    }
-    else if (mSelectedElement == 7 && mEnterKeyIndex < mKeySprites.size()) {
-        sf::Vector2f pos = mKeySprites[mEnterKeyIndex].getPosition();
-        mKeySprites[mEnterKeyIndex].setPosition(pos.x + offsetX, pos.y + offsetY);
-    }
-}
-
-void ControlsDisplay::printCoordinates() const {
-    std::cout << "\n=== Coordenadas ControlsDisplay ===" << std::endl;
-    
-    if (mMoveLabelIndex < mLabels.size()) {
-        sf::Vector2f pos = mLabels[mMoveLabelIndex].getPosition();
-        std::cout << "1. Texto 'Movimiento': X=" << pos.x << ", Y=" << pos.y << std::endl;
-    }
-    
-    if (mKeySprites.size() >= 4) {
-        std::cout << "2. Flechas:" << std::endl;
-        sf::Vector2f pos0 = mKeySprites[0].getPosition();
-        sf::Vector2f pos1 = mKeySprites[1].getPosition();
-        sf::Vector2f pos2 = mKeySprites[2].getPosition();
-        sf::Vector2f pos3 = mKeySprites[3].getPosition();
-        std::cout << "   Arrow Up: X=" << pos0.x << ", Y=" << pos0.y << std::endl;
-        std::cout << "   Arrow Left: X=" << pos1.x << ", Y=" << pos1.y << std::endl;
-        std::cout << "   Arrow Down: X=" << pos2.x << ", Y=" << pos2.y << std::endl;
-        std::cout << "   Arrow Right: X=" << pos3.x << ", Y=" << pos3.y << std::endl;
-    }
-    
-    if (mPauseLabelIndex < mLabels.size()) {
-        sf::Vector2f pos = mLabels[mPauseLabelIndex].getPosition();
-        std::cout << "3. Texto 'Pausa': X=" << pos.x << ", Y=" << pos.y << std::endl;
-    }
-    
-    if (mKeySprites.size() >= 6) {
-        std::cout << "4. Teclas Pausa:" << std::endl;
-        sf::Vector2f posP = mKeySprites[4].getPosition();
-        sf::Vector2f posEsc = mKeySprites[5].getPosition();
-        std::cout << "   P: X=" << posP.x << ", Y=" << posP.y << std::endl;
-        std::cout << "   ESC: X=" << posEsc.x << ", Y=" << posEsc.y << std::endl;
-    }
-    
-    if (mF11LabelIndex < mLabels.size()) {
-        sf::Vector2f pos = mLabels[mF11LabelIndex].getPosition();
-        std::cout << "5. Texto 'Pantalla': X=" << pos.x << ", Y=" << pos.y << std::endl;
-    }
-    
-    if (mF11KeyIndex < mKeySprites.size()) {
-        sf::Vector2f pos = mKeySprites[mF11KeyIndex].getPosition();
-        std::cout << "6. Tecla F11: X=" << pos.x << ", Y=" << pos.y << std::endl;
-    }
-    
-    if (mEnterKeyIndex < mKeySprites.size()) {
-        sf::Vector2f pos = mKeySprites[mEnterKeyIndex].getPosition();
-        std::cout << "7. Tecla Enter: X=" << pos.x << ", Y=" << pos.y << std::endl;
-    }
-    
-    std::cout << "===================================" << std::endl;
 }
 
 void ControlsDisplay::setBaseResolution(float width, float height) {
@@ -259,103 +156,29 @@ void ControlsDisplay::draw(sf::RenderWindow& window) {
         window.draw(label);
     }
     
-    // Dibujar hitboxes si está en modo debug
+    // Dibujar hitboxes en modo debug
     if (mDebugMode) {
-        // Hitbox para label "Movimiento" (1)
-        if (mMoveLabelIndex < mLabels.size()) {
-            sf::FloatRect bounds = mLabels[mMoveLabelIndex].getGlobalBounds();
+        // Hitboxes de todos los sprites de teclas
+        for (const auto& sprite : mKeySprites) {
+            sf::FloatRect bounds = sprite.getGlobalBounds();
             sf::RectangleShape hitbox;
             hitbox.setPosition(bounds.left, bounds.top);
             hitbox.setSize(sf::Vector2f(bounds.width, bounds.height));
-            hitbox.setFillColor(sf::Color(255, 255, 0, mSelectedElement == 1 ? 120 : 60));
+            hitbox.setFillColor(sf::Color(0, 255, 255, 60));
             hitbox.setOutlineThickness(2.0f);
-            hitbox.setOutlineColor(mSelectedElement == 1 ? sf::Color::Yellow : sf::Color(255, 255, 0, 150));
+            hitbox.setOutlineColor(sf::Color::Cyan);
             window.draw(hitbox);
         }
         
-        // Hitbox para flechas (2) - combinar todas
-        if (mKeySprites.size() >= 4) {
-            float minX = 99999.0f, minY = 99999.0f, maxX = -99999.0f, maxY = -99999.0f;
-            for (int i = 0; i < 4; i++) {
-                sf::FloatRect bounds = mKeySprites[i].getGlobalBounds();
-                minX = std::min(minX, bounds.left);
-                minY = std::min(minY, bounds.top);
-                maxX = std::max(maxX, bounds.left + bounds.width);
-                maxY = std::max(maxY, bounds.top + bounds.height);
-            }
-            sf::RectangleShape hitbox;
-            hitbox.setPosition(minX, minY);
-            hitbox.setSize(sf::Vector2f(maxX - minX, maxY - minY));
-            hitbox.setFillColor(sf::Color(0, 255, 255, mSelectedElement == 2 ? 120 : 60));
-            hitbox.setOutlineThickness(2.0f);
-            hitbox.setOutlineColor(mSelectedElement == 2 ? sf::Color::Cyan : sf::Color(0, 255, 255, 150));
-            window.draw(hitbox);
-        }
-        
-        // Hitbox para label "Pausa" (3)
-        if (mPauseLabelIndex < mLabels.size()) {
-            sf::FloatRect bounds = mLabels[mPauseLabelIndex].getGlobalBounds();
+        // Hitboxes de todos los textos/labels
+        for (const auto& label : mLabels) {
+            sf::FloatRect bounds = label.getGlobalBounds();
             sf::RectangleShape hitbox;
             hitbox.setPosition(bounds.left, bounds.top);
             hitbox.setSize(sf::Vector2f(bounds.width, bounds.height));
-            hitbox.setFillColor(sf::Color(255, 0, 255, mSelectedElement == 3 ? 120 : 60));
+            hitbox.setFillColor(sf::Color(255, 255, 0, 60));
             hitbox.setOutlineThickness(2.0f);
-            hitbox.setOutlineColor(mSelectedElement == 3 ? sf::Color::Magenta : sf::Color(255, 0, 255, 150));
-            window.draw(hitbox);
-        }
-        
-        // Hitbox para teclas P/ESC (4) - combinar
-        if (mKeySprites.size() >= 6) {
-            float minX = 99999.0f, minY = 99999.0f, maxX = -99999.0f, maxY = -99999.0f;
-            for (int i = 4; i < 6; i++) {
-                sf::FloatRect bounds = mKeySprites[i].getGlobalBounds();
-                minX = std::min(minX, bounds.left);
-                minY = std::min(minY, bounds.top);
-                maxX = std::max(maxX, bounds.left + bounds.width);
-                maxY = std::max(maxY, bounds.top + bounds.height);
-            }
-            sf::RectangleShape hitbox;
-            hitbox.setPosition(minX, minY);
-            hitbox.setSize(sf::Vector2f(maxX - minX, maxY - minY));
-            hitbox.setFillColor(sf::Color(255, 128, 0, mSelectedElement == 4 ? 120 : 60));
-            hitbox.setOutlineThickness(2.0f);
-            hitbox.setOutlineColor(mSelectedElement == 4 ? sf::Color(255, 128, 0) : sf::Color(255, 128, 0, 150));
-            window.draw(hitbox);
-        }
-        
-        // Hitbox para label "Pantalla" (5)
-        if (mF11LabelIndex < mLabels.size()) {
-            sf::FloatRect bounds = mLabels[mF11LabelIndex].getGlobalBounds();
-            sf::RectangleShape hitbox;
-            hitbox.setPosition(bounds.left, bounds.top);
-            hitbox.setSize(sf::Vector2f(bounds.width, bounds.height));
-            hitbox.setFillColor(sf::Color(0, 255, 0, mSelectedElement == 5 ? 120 : 60));
-            hitbox.setOutlineThickness(2.0f);
-            hitbox.setOutlineColor(mSelectedElement == 5 ? sf::Color::Green : sf::Color(0, 255, 0, 150));
-            window.draw(hitbox);
-        }
-        
-        // Hitbox para tecla F11 (6)
-        if (mF11KeyIndex < mKeySprites.size()) {
-            sf::FloatRect bounds = mKeySprites[mF11KeyIndex].getGlobalBounds();
-            sf::RectangleShape hitbox;
-            hitbox.setPosition(bounds.left, bounds.top);
-            hitbox.setSize(sf::Vector2f(bounds.width, bounds.height));
-            hitbox.setFillColor(sf::Color(128, 0, 255, mSelectedElement == 6 ? 120 : 60));
-            hitbox.setOutlineThickness(2.0f);
-            hitbox.setOutlineColor(mSelectedElement == 6 ? sf::Color(128, 0, 255) : sf::Color(128, 0, 255, 150));
-            window.draw(hitbox);
-        }
-        
-        // Hitbox para tecla Enter (7)
-        if (mEnterKeyIndex < mKeySprites.size()) {
-            sf::FloatRect bounds = mKeySprites[mEnterKeyIndex].getGlobalBounds();
-            sf::RectangleShape hitbox;
-            hitbox.setPosition(bounds.left, bounds.top);
-            hitbox.setSize(sf::Vector2f(bounds.width, bounds.height));
-            hitbox.setFillColor(sf::Color(255, 255, 255, mSelectedElement == 7 ? 120 : 60));
-            hitbox.setOutlineThickness(2.0f);
-            hitbox.setOutlineColor(mSelectedElement == 7 ? sf::Color::White : sf::Color(255, 255, 255, 150));
+            hitbox.setOutlineColor(sf::Color::Yellow);
             window.draw(hitbox);
         }
     }
