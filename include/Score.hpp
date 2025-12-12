@@ -13,6 +13,7 @@ public:
     void update(float windowWidth, float windowHeight, float offsetX, float offsetY);
     void draw(sf::RenderWindow& window);
     void drawDebug(sf::RenderWindow& window);
+    void setBaseResolution(float width, float height);
     
 private:
     void updateTextPosition(float windowWidth, float windowHeight);
@@ -21,4 +22,6 @@ private:
     sf::Text mScoreLabel;
     sf::Text mScoreValue;
     int mCurrentScore;
+    float mBaseResolutionWidth;
+    float mBaseResolutionHeight;
 };

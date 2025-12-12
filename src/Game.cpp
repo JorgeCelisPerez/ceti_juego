@@ -33,12 +33,22 @@ Game::Game()
       mBarOffsetY(-10.0f),
       mHighScoreOffsetX(40.0f),
       mHighScoreOffsetY(20.0f),
+      mBaseScoreOffsetX(-100.0f),
+      mBaseScoreOffsetY(20.0f),
+      mBaseHighScoreOffsetX(40.0f),
+      mBaseHighScoreOffsetY(20.0f),
+      mBaseResolutionWidth(static_cast<float>(sf::VideoMode::getDesktopMode().width)),
+      mBaseResolutionHeight(static_cast<float>(sf::VideoMode::getDesktopMode().height)),
       mCarrilesLeftOffset(30.0f),
       mCarrilesRightOffset(-30.0f),
       mDivision1Offset(-6.0f),
       mDivision2Offset(-2.0f),
       mDivision3Offset(6.0f)
 {
+    // Establecer resolución base para escalado de UI
+    mScore.setBaseResolution(mBaseResolutionWidth, mBaseResolutionHeight);
+    mHighScore.setBaseResolution(mBaseResolutionWidth, mBaseResolutionHeight);
+    
     mWindow.setVerticalSyncEnabled(true);
     srand(static_cast<unsigned int>(time(NULL)));
 
@@ -495,6 +505,7 @@ void Game::updateGasolinaBar() {
 void Game::toggleFullscreen() {
     // Guardar posición del jugador y dimensiones ANTES de cambiar ventana
     sf::Vector2f savedPlayerPos = mPlayer.getPosition();
+    float savedWindowWidth = static_cast<float>(mWindow.getSize().x);
     float savedWindowHeight = static_cast<float>(mWindow.getSize().y);
     float savedPlayableLeft = mPlayableLeft;
     float savedPlayableRight = mPlayableRight;
@@ -528,6 +539,15 @@ void Game::toggleFullscreen() {
     
     mPlayer.setPosition(newPlayerX, newPlayerY);
     clampPlayer();
+    
+    // Calcular offsets escalados basados en valores base
+    float scaleX = newWindowWidth / mBaseResolutionWidth;
+    float scaleY = newWindowHeight / mBaseResolutionHeight;
+    
+    mScoreOffsetX = mBaseScoreOffsetX * scaleX;
+    mScoreOffsetY = mBaseScoreOffsetY * scaleY;
+    mHighScoreOffsetX = mBaseHighScoreOffsetX * scaleX;
+    mHighScoreOffsetY = mBaseHighScoreOffsetY * scaleY;
     
     // Actualizar UI de las pantallas
     mMenu.resize();

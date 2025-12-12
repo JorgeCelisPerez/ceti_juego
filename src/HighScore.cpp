@@ -2,7 +2,7 @@
 #include <iostream>
 #include <sstream>
 
-HighScore::HighScore() : mHighScore(0) {
+HighScore::HighScore() : mHighScore(0), mBaseResolutionWidth(1920.0f), mBaseResolutionHeight(1080.0f) {
     if (!mFont.loadFromFile("assets/fonts/Speed Rusher.ttf")) {
         std::cerr << "Error: No se pudo cargar la fuente para HighScore" << std::endl;
         if (!mFont.loadFromFile("assets/fonts/arial.ttf")) {
@@ -24,6 +24,11 @@ HighScore::HighScore() : mHighScore(0) {
     mHighScoreValue.setFillColor(sf::Color(255, 215, 0)); // Dorado brillante
     mHighScoreValue.setStyle(sf::Text::Bold);
     mHighScoreValue.setString("0");
+}
+
+void HighScore::setBaseResolution(float width, float height) {
+    mBaseResolutionWidth = width;
+    mBaseResolutionHeight = height;
 }
 
 void HighScore::checkAndUpdate(int currentScore) {
@@ -62,13 +67,26 @@ void HighScore::update(float windowWidth, float windowHeight) {
 
 void HighScore::update(float windowWidth, float windowHeight, float offsetX, float offsetY) {
     updateTextPosition(windowWidth, windowHeight);
-    // Aplicar offset
-    mHighScoreLabel.move(offsetX, offsetY);
-    mHighScoreValue.move(offsetX, offsetY);
+    // Aplicar offsets directamente a las posiciones calculadas
+    sf::Vector2f labelPos = mHighScoreLabel.getPosition();
+    sf::Vector2f valuePos = mHighScoreValue.getPosition();
+    mHighScoreLabel.setPosition(labelPos.x + offsetX, labelPos.y + offsetY);
+    mHighScoreValue.setPosition(valuePos.x + offsetX, valuePos.y + offsetY);
 }
 
 void HighScore::updateTextPosition(float windowWidth, float windowHeight) {
-    float padding = 20.0f;
+    // Calcular escalado basado en la resolución actual vs la base
+    float scaleY = windowHeight / mBaseResolutionHeight;
+    float scaleX = windowWidth / mBaseResolutionWidth;
+    
+    // Escalar tamaños de fuente (base: 35 para label, 45 para value)
+    unsigned int labelSize = static_cast<unsigned int>(35.0f * scaleY);
+    unsigned int valueSize = static_cast<unsigned int>(45.0f * scaleY);
+    mHighScoreLabel.setCharacterSize(labelSize);
+    mHighScoreValue.setCharacterSize(valueSize);
+    
+    // Escalar padding (base: 20.0f)
+    float padding = 20.0f * scaleX;
     
     // Posicionar etiqueta "High Score:" en la esquina superior IZQUIERDA
     mHighScoreLabel.setPosition(padding, padding);

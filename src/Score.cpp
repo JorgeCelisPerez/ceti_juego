@@ -2,7 +2,7 @@
 #include <iostream>
 #include <sstream>
 
-Score::Score() : mCurrentScore(0) {
+Score::Score() : mCurrentScore(0), mBaseResolutionWidth(1920.0f), mBaseResolutionHeight(1080.0f) {
     if (!mFont.loadFromFile("assets/fonts/Speed Rusher.ttf")) {
         std::cerr << "Error: No se pudo cargar la fuente para Score" << std::endl;
         if (!mFont.loadFromFile("assets/fonts/arial.ttf")) {
@@ -24,6 +24,11 @@ Score::Score() : mCurrentScore(0) {
     mScoreValue.setFillColor(sf::Color(255, 204, 0)); // Amarillo dorado
     mScoreValue.setStyle(sf::Text::Bold);
     mScoreValue.setString("0");
+}
+
+void Score::setBaseResolution(float width, float height) {
+    mBaseResolutionWidth = width;
+    mBaseResolutionHeight = height;
 }
 
 void Score::addPoints(int points) {
@@ -55,13 +60,26 @@ void Score::update(float windowWidth, float windowHeight) {
 
 void Score::update(float windowWidth, float windowHeight, float offsetX, float offsetY) {
     updateTextPosition(windowWidth, windowHeight);
-    // Aplicar offset
-    mScoreLabel.move(offsetX, offsetY);
-    mScoreValue.move(offsetX, offsetY);
+    // Aplicar offsets directamente a las posiciones calculadas
+    sf::Vector2f labelPos = mScoreLabel.getPosition();
+    sf::Vector2f valuePos = mScoreValue.getPosition();
+    mScoreLabel.setPosition(labelPos.x + offsetX, labelPos.y + offsetY);
+    mScoreValue.setPosition(valuePos.x + offsetX, valuePos.y + offsetY);
 }
 
 void Score::updateTextPosition(float windowWidth, float windowHeight) {
-    float padding = 20.0f;
+    // Calcular escalado basado en la resolución actual vs la base
+    float scaleY = windowHeight / mBaseResolutionHeight;
+    float scaleX = windowWidth / mBaseResolutionWidth;
+    
+    // Escalar tamaños de fuente (base: 35 para label, 45 para value)
+    unsigned int labelSize = static_cast<unsigned int>(35.0f * scaleY);
+    unsigned int valueSize = static_cast<unsigned int>(45.0f * scaleY);
+    mScoreLabel.setCharacterSize(labelSize);
+    mScoreValue.setCharacterSize(valueSize);
+    
+    // Escalar padding (base: 20.0f)
+    float padding = 20.0f * scaleX;
     
     // Posicionar etiqueta "Score:" en la esquina superior derecha
     sf::FloatRect labelBounds = mScoreLabel.getGlobalBounds();

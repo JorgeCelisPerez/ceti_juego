@@ -107,6 +107,14 @@ private:
     float mHighScoreOffsetX;
     float mHighScoreOffsetY;
     
+    // --- Valores base para escalado de offsets ---
+    float mBaseScoreOffsetX;
+    float mBaseScoreOffsetY;
+    float mBaseHighScoreOffsetX;
+    float mBaseHighScoreOffsetY;
+    float mBaseResolutionWidth;
+    float mBaseResolutionHeight;
+    
     // --- Ajustes de carriles (para debug) ---
     float mCarrilesLeftOffset;    // Offset del inicio de los carriles
     float mCarrilesRightOffset;   // Offset del fin de los carriles
