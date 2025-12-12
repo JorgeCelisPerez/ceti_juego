@@ -21,6 +21,8 @@ Game::Game()
       mCarScaleFactor(1.f),
       mCarrilAncho(0.f),
       mSpawnInterval(1.5f),
+      mTruckSpawnTimer(0.f),
+      mTruckSpawnInterval(12.0f),
       mGasolinaSpawnInterval(3.0f),
       mGasolinaMax(100.0f),
       mGasolinaConsumoRate(5.0f),
@@ -58,6 +60,7 @@ Game::Game()
     if (!mBarGlassTexture.loadFromFile("assets/images/BarGlass.png")) { exit(1); }
     if (!mRedBarTexture.loadFromFile("assets/images/RedBar.png")) { exit(1); }
     if (!mPlayerTexture.loadFromFile("assets/images/Black_viper.png")) { exit(1); }
+    if (!mTruckTexture.loadFromFile("assets/images/truck.png")) { exit(1); }
     
     // Cargar texturas de enemigos
     mEnemyTextures.resize(7);
@@ -272,13 +275,61 @@ void Game::update(sf::Time dt) {
                     int randomTexture = rand() % mEnemyTextures.size();  // Textura aleatoria
                     float laneX = mCarrilLimits[randomLane] + (mCarrilAncho * 0.5f);
                     
-                    // Carriles izquierdos (0, 1) tienen más velocidad y están rotados
-                    bool isLeftLane = (randomLane < 2);
-                    float speedMultiplier = isLeftLane ? 1.1f : 1.0f;  // 10% más rápido en carriles izquierdos
-                    float enemySpeed = 400.f * mDifficulty.getEnemySpeedMultiplier() * speedMultiplier;
+                    // Verificar que no haya enemigos muy cerca en ese carril
+                    bool canSpawn = true;
+                    for (const auto& e : mEnemigos) {
+                        if (e.getLane() == randomLane && e.getY() < 100.f) {
+                            canSpawn = false;
+                            break;
+                        }
+                    }
                     
-                    mEnemigos.emplace_back(laneX, -200.f, randomLane, enemySpeed, mCarrilLimits[randomLane], mCarrilLimits[randomLane + 1], mBaseCarSize, mCarScaleFactor, mEnemyTextures[randomTexture], isLeftLane);
+                    if (canSpawn) {
+                        // Carriles izquierdos (0, 1) están rotados
+                        bool isLeftLane = (randomLane < 2);
+                        float enemySpeed = 400.f * mDifficulty.getEnemySpeedMultiplier();
+                        
+                        mEnemigos.emplace_back(laneX, -200.f, randomLane, enemySpeed, mCarrilLimits[randomLane], mCarrilLimits[randomLane + 1], mBaseCarSize, mCarScaleFactor, mEnemyTextures[randomTexture], isLeftLane);
+                    }
                 }
+                
+                // Spawn de camiones especiales (raros, abarcan 2 carriles)
+                mTruckSpawnTimer += timeSeconds;
+                if (mTruckSpawnTimer >= mTruckSpawnInterval) {
+                    mTruckSpawnTimer = 0.f;
+                    
+                    // Decidir si aparece en izquierda (carriles 0-1) o derecha (carriles 2-3)
+                    bool spawnLeft = (rand() % 2 == 0);
+                    int baseLane = spawnLeft ? 0 : 2;
+                    
+                    // Verificar que no haya enemigos cerca en los 2 carriles que ocupará
+                    bool canSpawn = true;
+                    for (const auto& e : mEnemigos) {
+                        int enemyLane = e.getLane();
+                        if ((enemyLane == baseLane || enemyLane == baseLane + 1) && e.getY() < 200.f) {
+                            canSpawn = false;
+                            break;
+                        }
+                    }
+                    
+                    if (canSpawn) {
+                        // Posición X centrada entre dos carriles
+                        float truckX = (mCarrilLimits[baseLane] + mCarrilLimits[baseLane + 2]) / 2.0f;
+                        
+                        // Tamaño especial basado en mBaseCarSize (NO en mCarrilAncho para evitar problemas al escalar)
+                        sf::Vector2f truckSize(mBaseCarSize.x * 1.8f, mBaseCarSize.y * 2.2f);
+                        
+                        // Velocidad y rotación
+                        bool rotate = spawnLeft;
+                        float truckSpeed = 400.f * mDifficulty.getEnemySpeedMultiplier();
+                        
+                        // Crear camión (abarca 2 carriles)
+                        mEnemigos.emplace_back(truckX, -200.f, baseLane, truckSpeed, 
+                                              mCarrilLimits[baseLane], mCarrilLimits[baseLane + 2], 
+                                              truckSize, mCarScaleFactor, mTruckTexture, rotate, true);  // true = isTruck
+                    }
+                }
+                
                 mGasolinaSpawnTimer += timeSeconds;
                 if (mGasolinaSpawnTimer >= mGasolinaSpawnInterval) {
                      mGasolinaSpawnTimer = 0.f;
@@ -453,8 +504,19 @@ void Game::updateRoadScale() {
 
     for (auto& enemy : mEnemigos) {
         int lane = enemy.getLane();
-        float newLaneX = mCarrilLimits[lane] + (mCarrilAncho * 0.5f);
-        enemy.updateLanePosition(newLaneX, mCarrilLimits[lane], mCarrilLimits[lane+1]);
+        
+        if (enemy.isTruck()) {
+            // Lógica para trucks (2 carriles)
+            float newLeft = mCarrilLimits[lane];
+            float newRight = mCarrilLimits[lane + 2];
+            float newLaneX = (newLeft + newRight) / 2.0f;  // Centrado entre 2 carriles
+            enemy.updateLanePosition(newLaneX, newLeft, newRight);
+        } else {
+            // Lógica original para enemigos normales (1 carril)
+            float newLaneX = mCarrilLimits[lane] + (mCarrilAncho * 0.5f);
+            enemy.updateLanePosition(newLaneX, mCarrilLimits[lane], mCarrilLimits[lane+1]);
+        }
+        
         enemy.updateSize(mBaseCarSize, mCarScaleFactor);
     }
     for (auto& gasolina : mGasolinas) {

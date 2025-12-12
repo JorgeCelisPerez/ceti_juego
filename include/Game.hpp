@@ -47,6 +47,7 @@ private:
     sf::Texture mBarGlassTexture;
     sf::Texture mRedBarTexture;
     sf::Texture mPlayerTexture;
+    sf::Texture mTruckTexture;
     std::vector<sf::Texture> mEnemyTextures;
     
     // --- Entidades del Juego ---
@@ -80,6 +81,8 @@ private:
     std::vector<Enemy> mEnemigos;
     float mSpawnTimer;
     float mSpawnInterval;
+    float mTruckSpawnTimer;
+    float mTruckSpawnInterval;
     
     // --- Sistema de Gasolina ---
     std::vector<Gasolina> mGasolinas;

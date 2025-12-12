@@ -1,7 +1,7 @@
 #include "Enemigo.hpp"
 
-Enemy::Enemy(float x, float y, int lane, float speed, float laneLeft, float laneRight, sf::Vector2f baseSize, float scaleFactor, const sf::Texture& texture, bool rotateSprite)
-    : mSpeed(speed), mLane(lane), mLaneLeft(laneLeft), mLaneRight(laneRight)
+Enemy::Enemy(float x, float y, int lane, float speed, float laneLeft, float laneRight, sf::Vector2f baseSize, float scaleFactor, const sf::Texture& texture, bool rotateSprite, bool isTruck)
+    : mSpeed(speed), mLane(lane), mLaneLeft(laneLeft), mLaneRight(laneRight), mBaseSize(baseSize), mIsTruck(isTruck)
 {
     mSprite.setTexture(texture);
     
@@ -37,9 +37,12 @@ void Enemy::updateLanePosition(float newX, float newLeft, float newRight) {
 }
 
 void Enemy::updateSize(sf::Vector2f baseSize, float scaleFactor) {
+    // Usar el tamaño base guardado si no se proporciona uno nuevo
+    sf::Vector2f sizeToUse = mBaseSize;
+    
     sf::FloatRect textureBounds = mSprite.getLocalBounds();
-    float scaleX = (baseSize.x * scaleFactor) / textureBounds.width;
-    float scaleY = (baseSize.y * scaleFactor) / textureBounds.height;
+    float scaleX = (sizeToUse.x * scaleFactor) / textureBounds.width;
+    float scaleY = (sizeToUse.y * scaleFactor) / textureBounds.height;
     mSprite.setScale(scaleX, scaleY);
 }
 
@@ -57,4 +60,8 @@ int Enemy::getLane() const {
 
 float Enemy::getY() const {
     return mSprite.getPosition().y;
+}
+
+bool Enemy::isTruck() const {
+    return mIsTruck;
 }
