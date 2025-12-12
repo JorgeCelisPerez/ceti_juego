@@ -2,6 +2,7 @@
 #define SOUNDMANAGER_HPP
 
 #include <SFML/Audio.hpp>
+#include <SFML/System.hpp>
 #include <map>
 #include <string>
 
@@ -49,9 +50,6 @@ private:
     sf::Music mEngineLoop;  // Usar Music para loops largos
     int mCurrentEngineLoop;
     std::vector<std::string> mEngineLoopFiles;
-    bool mFirstLoopComplete;  // Para detectar cuando termina la primera reproducción
-    sf::Time mEngineDuration;  // Duración del audio del motor
-    bool mEngineManuallyPaused;  // Para distinguir entre pausa manual y fin natural
     
     float mVolume;
 };

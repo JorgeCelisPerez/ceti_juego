@@ -1,7 +1,7 @@
 #include "SoundManager.hpp"
 #include <iostream>
 
-SoundManager::SoundManager() : mVolume(100.0f), mCurrentEngineLoop(1), mFirstLoopComplete(false), mEngineManuallyPaused(false) {
+SoundManager::SoundManager() : mVolume(100.0f), mCurrentEngineLoop(1) {
     // Definir los archivos de loop disponibles
     mEngineLoopFiles = {
         "assets/sounds/car-acceleration-inside.wav",
@@ -60,9 +60,8 @@ bool SoundManager::init() {
         std::cerr << "Error: No se pudo cargar el loop de motor inicial" << std::endl;
         return false;
     }
-    mEngineLoop.setLoop(false);  // Controlamos el loop manualmente
+    mEngineLoop.setLoop(true);  // SFML maneja el loop automáticamente
     mEngineLoop.setVolume(mVolume * 0.65f);  // Volumen del motor al 65%
-    mEngineDuration = mEngineLoop.getDuration();
     
     std::cout << "SoundManager inicializado correctamente" << std::endl;
     std::cout << "Loop de motor activo: 1 - car-acceleration-inside.wav" << std::endl;
@@ -91,30 +90,23 @@ void SoundManager::playEngineRoaringSound() {
 
 void SoundManager::startEngineLoop() {
     if (mEngineLoop.getStatus() != sf::Music::Playing) {
-        mFirstLoopComplete = false;
-        mEngineManuallyPaused = false;
-        mEngineLoop.setPlayingOffset(sf::Time::Zero);
         mEngineLoop.play();
     }
 }
 
 void SoundManager::stopEngineLoop() {
     mEngineLoop.stop();
-    mFirstLoopComplete = false;
-    mEngineManuallyPaused = false;
 }
 
 void SoundManager::pauseEngineLoop() {
     if (mEngineLoop.getStatus() == sf::Music::Playing) {
         mEngineLoop.pause();
-        mEngineManuallyPaused = true;
     }
 }
 
 void SoundManager::resumeEngineLoop() {
     if (mEngineLoop.getStatus() == sf::Music::Paused) {
         mEngineLoop.play();
-        mEngineManuallyPaused = false;
     }
 }
 
@@ -142,10 +134,8 @@ void SoundManager::changeEngineLoop(int loopNumber) {
         return;
     }
     
-    mEngineLoop.setLoop(false);  // Controlamos manualmente
+    mEngineLoop.setLoop(true);  // Loop automático
     mEngineLoop.setVolume(mVolume * 0.65f);
-    mEngineDuration = mEngineLoop.getDuration();
-    mFirstLoopComplete = false;
     
     // Mostrar cuál loop está activo
     std::cout << "Loop de motor cambiado a: " << loopNumber << " - " 
@@ -161,21 +151,8 @@ int SoundManager::getCurrentEngineLoop() const {
 }
 
 void SoundManager::updateEngineLoop() {
-    // Si el motor está sonando, verificar si terminó para reiniciar con recorte
-    // NO reiniciar si está pausado manualmente
-    if (mEngineLoop.getStatus() == sf::Music::Stopped && !mEngineManuallyPaused) {
-        // Verificar si es porque terminó de reproducir (no por pause manual)
-        if (!mFirstLoopComplete) {
-            // Primera reproducción completa, ahora empezar desde 2.5 segundos
-            mFirstLoopComplete = true;
-            mEngineLoop.setPlayingOffset(sf::seconds(2.5f));
-            mEngineLoop.play();
-        } else {
-            // Reproducciones subsecuentes, empezar desde 2.5 segundos
-            mEngineLoop.setPlayingOffset(sf::seconds(2.5f));
-            mEngineLoop.play();
-        }
-    }
+    // Con setLoop(true), SFML maneja el loop automáticamente
+    // Esta función ya no es necesaria pero la dejamos vacía por compatibilidad
 }
 
 void SoundManager::setVolume(float volume) {

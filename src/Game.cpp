@@ -198,10 +198,6 @@ void Game::processEvents() {
                 break;
             case GameState::Playing:
                 if (event.type == sf::Event::KeyPressed) {
-                    if (event.key.code == sf::Keyboard::Escape) {
-                        mGameState = GameState::Menu;
-                        mSoundManager.stopEngineLoop();
-                    }
                     if (event.key.code == sf::Keyboard::F1) {
                         mDebugBounds = !mDebugBounds;
                         mControlsDisplay.setDebugMode(mDebugBounds);
@@ -532,8 +528,8 @@ void Game::update(sf::Time dt) {
             }
             break;
         case GameState::Paused:
-            // No actualizar nada, juego pausado
-            // NO llamar updateEngineLoop para evitar reinicio del sonido
+            // NO actualizar el loop mientras está pausado
+            // Esto previene reinicios cuando el audio termina durante la pausa
             break;
         case GameState::GameOver:
             // El jugador elige qué hacer (Reintentar o Salir)
