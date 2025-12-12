@@ -377,7 +377,14 @@ void Game::update(sf::Time dt) {
                     mGameOverScreen.setScore(scoreActual); // Establecer score en pantalla de Game Over
                     mGameOverScreen.reset(); // Usar la nueva clase
                     mGameState = GameState::GameOver;
-                    mSoundManager.playGameOverSound(); // Reproducir sonido de game over
+                    
+                    // Reproducir sonido según si es nuevo récord o no
+                    if (esNuevoRecord) {
+                        mSoundManager.playNewRecordSound();
+                    } else {
+                        mSoundManager.playGameOverSound();
+                    }
+                    
                     mSoundManager.stopEngineLoop();  // Detener sonido de motor
                     return; 
                 }

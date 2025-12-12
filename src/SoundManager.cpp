@@ -46,6 +46,15 @@ bool SoundManager::init() {
     mGameOverSound.setBuffer(mGameOverBuffer);
     mGameOverSound.setVolume(mVolume);
     
+    // Cargar sonido de nuevo récord
+    if (!mNewRecordBuffer.loadFromFile("assets/sounds/new-record.wav")) {
+        std::cerr << "Error: No se pudo cargar el sonido new-record.wav" << std::endl;
+        return false;
+    }
+    
+    mNewRecordSound.setBuffer(mNewRecordBuffer);
+    mNewRecordSound.setVolume(mVolume);
+    
     // Cargar sonido de motor rugiendo (al empezar)
     if (!mEngineRoaringBuffer.loadFromFile("assets/sounds/car-engine-roaring.wav")) {
         std::cerr << "Error: No se pudo cargar el sonido car-engine-roaring.wav" << std::endl;
@@ -82,6 +91,10 @@ void SoundManager::playCrashSound() {
 
 void SoundManager::playGameOverSound() {
     mGameOverSound.play();
+}
+
+void SoundManager::playNewRecordSound() {
+    mNewRecordSound.play();
 }
 
 void SoundManager::playEngineRoaringSound() {
@@ -161,6 +174,7 @@ void SoundManager::setVolume(float volume) {
     mCountdownSound.setVolume(mVolume);
     mCrashSound.setVolume(mVolume);
     mGameOverSound.setVolume(mVolume);
+    mNewRecordSound.setVolume(mVolume);
     mEngineRoaringSound.setVolume(mVolume * 0.6f);
     mEngineLoop.setVolume(mVolume * 0.65f);  // Motor al 65%
 }

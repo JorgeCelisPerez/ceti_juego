@@ -15,6 +15,7 @@ public:
     void playCountdownSound();
     void playCrashSound();
     void playGameOverSound();
+    void playNewRecordSound();
     void playEngineRoaringSound();
     void setVolume(float volume);  // 0.0f a 100.0f
     
@@ -41,6 +42,9 @@ private:
     
     sf::SoundBuffer mGameOverBuffer;
     sf::Sound mGameOverSound;
+    
+    sf::SoundBuffer mNewRecordBuffer;
+    sf::Sound mNewRecordSound;
     
     sf::SoundBuffer mEngineRoaringBuffer;
     sf::Sound mEngineRoaringSound;
