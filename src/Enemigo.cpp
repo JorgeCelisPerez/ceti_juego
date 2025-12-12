@@ -1,6 +1,6 @@
 #include "Enemigo.hpp"
 
-Enemy::Enemy(float x, float y, int lane, float speed, float laneLeft, float laneRight, sf::Vector2f baseSize, float scaleFactor, const sf::Texture& texture)
+Enemy::Enemy(float x, float y, int lane, float speed, float laneLeft, float laneRight, sf::Vector2f baseSize, float scaleFactor, const sf::Texture& texture, bool rotateSprite)
     : mSpeed(speed), mLane(lane), mLaneLeft(laneLeft), mLaneRight(laneRight)
 {
     mSprite.setTexture(texture);
@@ -14,6 +14,11 @@ Enemy::Enemy(float x, float y, int lane, float speed, float laneLeft, float lane
     // Establecer origen al centro
     mSprite.setOrigin(textureBounds.width * 0.5f, textureBounds.height * 0.5f);
     mSprite.setPosition(x, y);
+    
+    // Rotar 180 grados si es necesario (carriles izquierdos)
+    if (rotateSprite) {
+        mSprite.setRotation(180.f);
+    }
 }
 
 void Enemy::update(float dt) {

@@ -4,7 +4,7 @@
 
 class Enemy {
 public:
-    Enemy(float x, float y, int lane, float speed, float laneLeft, float laneRight, sf::Vector2f baseSize, float scaleFactor, const sf::Texture& texture);
+    Enemy(float x, float y, int lane, float speed, float laneLeft, float laneRight, sf::Vector2f baseSize, float scaleFactor, const sf::Texture& texture, bool rotateSprite = false);
     
     void update(float dt);
     bool isOutOfBounds(float maxY) const;

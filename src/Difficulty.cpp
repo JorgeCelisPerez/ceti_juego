@@ -4,7 +4,7 @@
 
 DifficultyManager::DifficultyManager()
     : mLevel(0),
-      mScoreThreshold(100),
+      mScoreThreshold(80),
       mEnemySpeedMultiplier(1.0f),
       mSpawnRateMultiplier(1.0f),
       mFuelConsumptionMultiplier(1.0f)
@@ -30,12 +30,12 @@ void DifficultyManager::calculateMultipliers() {
     float scoreProgress = std::sqrt(static_cast<float>(mLevel));
     
     // Velocidad de enemigos: aumenta gradualmente hasta 2.0x
-    // Incremento más rápido: sqrt(nivel) * 0.30
-    mEnemySpeedMultiplier = std::min(1.0f + (scoreProgress * 0.30f), 2.0f);
+    // Incremento moderado: sqrt(nivel) * 0.32
+    mEnemySpeedMultiplier = std::min(1.0f + (scoreProgress * 0.32f), 2.0f);
     
-    // Spawn rate: aumenta gradualmente hasta 2x más rápido
-    // Disminuye el intervalo más rápido: sqrt(nivel) * 0.18
-    mSpawnRateMultiplier = std::max(1.0f - (scoreProgress * 0.18f), 0.5f);
+    // Spawn rate: aumenta gradualmente hasta 2.2x más rápido
+    // Disminuye el intervalo moderadamente: sqrt(nivel) * 0.19
+    mSpawnRateMultiplier = std::max(1.0f - (scoreProgress * 0.19f), 0.45f);
     
     // Consumo de gasolina: NO se modifica
     mFuelConsumptionMultiplier = 1.0f;

@@ -13,7 +13,7 @@ Game::Game()
       mGameState(GameState::Menu),
       mIsFullscreen(true),
       mScrollSpeed(500.f),
-      mPlayerSpeed(500.f),
+      mPlayerSpeed(600.f),
       mRoadMarginTexturePx(800.f),
       mDebugBounds(false),
       mBaseCarSize(105.f, 180.f),  // Aumentado para que las imágenes sean más visibles
@@ -271,8 +271,13 @@ void Game::update(sf::Time dt) {
                     int randomLane = rand() % NUM_CARRILES;
                     int randomTexture = rand() % mEnemyTextures.size();  // Textura aleatoria
                     float laneX = mCarrilLimits[randomLane] + (mCarrilAncho * 0.5f);
-                    float enemySpeed = 400.f * mDifficulty.getEnemySpeedMultiplier();
-                    mEnemigos.emplace_back(laneX, -200.f, randomLane, enemySpeed, mCarrilLimits[randomLane], mCarrilLimits[randomLane + 1], mBaseCarSize, mCarScaleFactor, mEnemyTextures[randomTexture]);
+                    
+                    // Carriles izquierdos (0, 1) tienen más velocidad y están rotados
+                    bool isLeftLane = (randomLane < 2);
+                    float speedMultiplier = isLeftLane ? 1.1f : 1.0f;  // 10% más rápido en carriles izquierdos
+                    float enemySpeed = 400.f * mDifficulty.getEnemySpeedMultiplier() * speedMultiplier;
+                    
+                    mEnemigos.emplace_back(laneX, -200.f, randomLane, enemySpeed, mCarrilLimits[randomLane], mCarrilLimits[randomLane + 1], mBaseCarSize, mCarScaleFactor, mEnemyTextures[randomTexture], isLeftLane);
                 }
                 mGasolinaSpawnTimer += timeSeconds;
                 if (mGasolinaSpawnTimer >= mGasolinaSpawnInterval) {
