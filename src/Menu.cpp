@@ -21,6 +21,11 @@ Menu::Menu(sf::RenderWindow& window)
         exit(1);
     }
 
+    if (!mLogoTexture.loadFromFile("assets/images/Logo.png")) {
+        std::cerr << "Error: No se pudo cargar la textura assets/images/Logo.png" << std::endl;
+        exit(1);
+    }
+
     setupUI();
     update(); // Llama inicial para colorear el primer item
 }
@@ -40,45 +45,46 @@ void Menu::setupUI() {
     mBackgroundSprite.setScale(scale, scale);
     mBackgroundSprite.setPosition(0, 0);
 
-    sf::Vector2f panelSize(winWidth * 0.4f, winHeight * 0.5f);
-    mPanel.setSize(panelSize);
-    mPanel.setFillColor(sf::Color(70, 130, 180, 240));
-    mPanel.setOrigin(panelSize.x / 2, panelSize.y / 2);
-    mPanel.setPosition(winWidth / 2, winHeight / 2);
+    // Overlay semi-transparente
+    mOverlay.setSize(sf::Vector2f(winWidth, winHeight));
+    mOverlay.setFillColor(sf::Color(0, 0, 0, 150));
 
-    mPanelShadow.setSize(panelSize);
-    mPanelShadow.setFillColor(sf::Color(0, 0, 0, 100));
-    mPanelShadow.setOrigin(panelSize.x / 2, panelSize.y / 2);
-    mPanelShadow.setPosition(mPanel.getPosition().x + 10, mPanel.getPosition().y + 10);
+    // Configurar logo grande centrado en la pantalla
+    mLogoSprite.setTexture(mLogoTexture);
+    sf::FloatRect logoBounds = mLogoSprite.getLocalBounds();
+    float logoScale = std::min(winWidth * 0.9f / logoBounds.width, winHeight * 0.8f / logoBounds.height);
+    mLogoSprite.setScale(logoScale, logoScale);
+    mLogoSprite.setOrigin(logoBounds.width / 2.0f, logoBounds.height / 2.0f);
+    mLogoSprite.setPosition(winWidth / 2.0f, winHeight / 2.0f);
     
     // Limpiar items existentes antes de recrearlos
     mMenuItems.clear();
     
-    // Configurar y añadir "Empezar"
+    // Configurar y añadir "Empezar" (a la derecha)
     sf::Text playButton;
     playButton.setFont(mFont);
     playButton.setString("Empezar");
-    playButton.setCharacterSize(50);
+    playButton.setCharacterSize(60);
     sf::FloatRect playBounds = playButton.getLocalBounds();
     playButton.setOrigin(playBounds.left + playBounds.width / 2.0f, playBounds.top + playBounds.height / 2.0f);
-    playButton.setPosition(winWidth / 2, winHeight / 2 - 50);
+    playButton.setPosition(winWidth * 0.85f, winHeight * 0.45f);
     mMenuItems.push_back(playButton);
 
     // Configurar y añadir "Salir"
     sf::Text exitButton;
     exitButton.setFont(mFont);
     exitButton.setString("Salir");
-    exitButton.setCharacterSize(50);
+    exitButton.setCharacterSize(60);
     sf::FloatRect exitBounds = exitButton.getLocalBounds();
     exitButton.setOrigin(exitBounds.left + exitBounds.width / 2.0f, exitBounds.top + exitBounds.height / 2.0f);
-    exitButton.setPosition(winWidth / 2, winHeight / 2 + 50);
+    exitButton.setPosition(winWidth * 0.85f, winHeight * 0.6f);
     mMenuItems.push_back(exitButton);
 }
 
 void Menu::draw() {
     mWindow.draw(mBackgroundSprite);
-    mWindow.draw(mPanelShadow);
-    mWindow.draw(mPanel);
+    mWindow.draw(mOverlay);
+    mWindow.draw(mLogoSprite);
     for (const auto& item : mMenuItems) {
         mWindow.draw(item);
     }

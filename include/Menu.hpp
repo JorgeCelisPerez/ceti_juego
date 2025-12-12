@@ -22,9 +22,10 @@ private:
     sf::Font mFont;
     sf::Texture mBackgroundTexture;
     sf::Sprite mBackgroundSprite;
+    sf::Texture mLogoTexture;
+    sf::Sprite mLogoSprite;
 
-    sf::RectangleShape mPanel;
-    sf::RectangleShape mPanelShadow;
+    sf::RectangleShape mOverlay;
 
     std::vector<sf::Text> mMenuItems;
     int mSelectedItemIndex;
