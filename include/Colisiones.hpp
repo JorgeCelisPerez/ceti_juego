@@ -8,7 +8,7 @@ class ColisionManager {
 public:
     // Comprobar colisiones del jugador con items de gasolina
     static void checkGasolinaCollisions(
-        const sf::RectangleShape& player,
+        const sf::Sprite& player,
         std::vector<Gasolina>& gasolinas,
         float& gasolinaActual,
         float gasolinaMax
@@ -16,7 +16,7 @@ public:
 
     // Comprobar colisiones del jugador con enemigos
     static void checkEnemyCollisions(
-        const sf::RectangleShape& player,
+        const sf::Sprite& player,
         std::vector<Enemy>& enemigos,
         float& gasolinaActual,
         float collisionPenalty = 25.0f

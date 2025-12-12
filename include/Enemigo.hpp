@@ -1,22 +1,23 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <string>
 
 class Enemy {
 public:
-    Enemy(float x, float y, int lane, float speed, float laneLeft, float laneRight, sf::Vector2f baseSize, float scaleFactor);
+    Enemy(float x, float y, int lane, float speed, float laneLeft, float laneRight, sf::Vector2f baseSize, float scaleFactor, const sf::Texture& texture);
     
     void update(float dt);
     bool isOutOfBounds(float maxY) const;
     void updateLanePosition(float newX, float newLeft, float newRight);
     void updateSize(sf::Vector2f baseSize, float scaleFactor);
     
-    sf::RectangleShape& getShape();
-    const sf::RectangleShape& getShape() const;
+    sf::Sprite& getSprite();
+    const sf::Sprite& getSprite() const;
     int getLane() const;
     float getY() const;
 
 private:
-    sf::RectangleShape mShape;
+    sf::Sprite mSprite;
     float mSpeed;
     int mLane;
     float mLaneLeft;

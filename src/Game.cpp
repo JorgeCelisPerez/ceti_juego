@@ -16,7 +16,7 @@ Game::Game()
       mPlayerSpeed(500.f),
       mRoadMarginTexturePx(800.f),
       mDebugBounds(false),
-      mBaseCarSize(80.f, 140.f),
+      mBaseCarSize(105.f, 180.f),  // Aumentado para que las imágenes sean más visibles
       mReferenceWidth(0.f),
       mCarScaleFactor(1.f),
       mCarrilAncho(0.f),
@@ -47,15 +47,29 @@ Game::Game()
     if (!mBarBackgroundTexture.loadFromFile("assets/images/BarBackground.png")) { exit(1); }
     if (!mBarGlassTexture.loadFromFile("assets/images/BarGlass.png")) { exit(1); }
     if (!mRedBarTexture.loadFromFile("assets/images/RedBar.png")) { exit(1); }
+    if (!mPlayerTexture.loadFromFile("assets/images/Black_viper.png")) { exit(1); }
+    
+    // Cargar texturas de enemigos
+    mEnemyTextures.resize(7);
+    if (!mEnemyTextures[0].loadFromFile("assets/images/Ambulance.png")) { exit(1); }
+    if (!mEnemyTextures[1].loadFromFile("assets/images/Audi.png")) { exit(1); }
+    if (!mEnemyTextures[2].loadFromFile("assets/images/Car.png")) { exit(1); }
+    if (!mEnemyTextures[3].loadFromFile("assets/images/Mini_truck.png")) { exit(1); }
+    if (!mEnemyTextures[4].loadFromFile("assets/images/Mini_van.png")) { exit(1); }
+    if (!mEnemyTextures[5].loadFromFile("assets/images/Police.png")) { exit(1); }
+    if (!mEnemyTextures[6].loadFromFile("assets/images/taxi.png")) { exit(1); }
 
     mRoad1.setTexture(mRoadTexture);
     mRoad2.setTexture(mRoadTexture);
     
     mReferenceWidth = static_cast<float>(mWindow.getSize().x);
 
-    mPlayer.setSize(mBaseCarSize);
-    mPlayer.setOrigin(mBaseCarSize.x * 0.5f, mBaseCarSize.y * 0.5f);
-    mPlayer.setFillColor(sf::Color(255, 80, 80));
+    mPlayer.setTexture(mPlayerTexture);
+    sf::FloatRect playerBounds = mPlayer.getLocalBounds();
+    float playerScaleX = mBaseCarSize.x / playerBounds.width;
+    float playerScaleY = mBaseCarSize.y / playerBounds.height;
+    mPlayer.setScale(playerScaleX, playerScaleY);
+    mPlayer.setOrigin(playerBounds.width * 0.5f, playerBounds.height * 0.5f);
 
     mBarBackground.setTexture(mBarBackgroundTexture);
     mBarGlass.setTexture(mBarGlassTexture);
@@ -215,7 +229,8 @@ void Game::update(sf::Time dt) {
                 mPlayer.move(input * mPlayerSpeed * timeSeconds, 0.f);
 
                 sf::Vector2f pos = mPlayer.getPosition();
-                float halfW = mPlayer.getSize().x * 0.5f;
+                sf::FloatRect bounds = mPlayer.getGlobalBounds();
+                float halfW = bounds.width * 0.5f;
                 bool isCurrentlyTouching = (pos.x - halfW < mPlayableLeft) || (pos.x + halfW > mPlayableRight);
 
                 if (isCurrentlyTouching) {
@@ -228,20 +243,26 @@ void Game::update(sf::Time dt) {
                 // Ahora, después de verificar y aplicar la penalización, corregimos la posición.
                 clampPlayer();
                 
-                // Incrementar puntuación por tiempo sobrevivido (100 puntos por segundo)
-                mScoreAccumulator += 100.0f * timeSeconds;
+                // Incrementar puntuación por tiempo sobrevivido (25 puntos por segundo)
+                mScoreAccumulator += 25.0f * timeSeconds;
                 int pointsToAdd = static_cast<int>(mScoreAccumulator);
                 if (pointsToAdd > 0) {
                     mScore.addPoints(pointsToAdd);
                     mScoreAccumulator -= pointsToAdd;
+                    
+                    // Actualizar dificultad basada en el score (se recalcula continuamente)
+                    mDifficulty.updateFromScore(mScore.getScore());
                 }
 
                 mSpawnTimer += timeSeconds;
-                if (mSpawnTimer >= mSpawnInterval) {
+                float adjustedSpawnInterval = mSpawnInterval * mDifficulty.getSpawnRateMultiplier();
+                if (mSpawnTimer >= adjustedSpawnInterval) {
                     mSpawnTimer = 0.f;
                     int randomLane = rand() % NUM_CARRILES;
+                    int randomTexture = rand() % mEnemyTextures.size();  // Textura aleatoria
                     float laneX = mCarrilLimits[randomLane] + (mCarrilAncho * 0.5f);
-                    mEnemigos.emplace_back(laneX, -200.f, randomLane, 400.f, mCarrilLimits[randomLane], mCarrilLimits[randomLane + 1], mBaseCarSize, mCarScaleFactor);
+                    float enemySpeed = 400.f * mDifficulty.getEnemySpeedMultiplier();
+                    mEnemigos.emplace_back(laneX, -200.f, randomLane, enemySpeed, mCarrilLimits[randomLane], mCarrilLimits[randomLane + 1], mBaseCarSize, mCarScaleFactor, mEnemyTextures[randomTexture]);
                 }
                 mGasolinaSpawnTimer += timeSeconds;
                 if (mGasolinaSpawnTimer >= mGasolinaSpawnInterval) {
@@ -292,8 +313,34 @@ void Game::render() {
             mWindow.draw(mRoad1);
             mWindow.draw(mRoad2);
             for (auto& gasolina : mGasolinas) mWindow.draw(gasolina.getSprite());
-            for (auto& enemy : mEnemigos) mWindow.draw(enemy.getShape());
+            for (auto& enemy : mEnemigos) mWindow.draw(enemy.getSprite());
             mWindow.draw(mPlayer);
+            
+            // Dibujar hitboxes en modo debug
+            if (mDebugBounds) {
+                // Hitbox del jugador (100% - tamaño exacto)
+                sf::FloatRect playerBounds = mPlayer.getGlobalBounds();
+                sf::RectangleShape playerHitbox;
+                playerHitbox.setPosition(playerBounds.left, playerBounds.top);
+                playerHitbox.setSize(sf::Vector2f(playerBounds.width, playerBounds.height));
+                playerHitbox.setFillColor(sf::Color(255, 0, 0, 80));  // Rojo semitransparente
+                playerHitbox.setOutlineColor(sf::Color::Red);
+                playerHitbox.setOutlineThickness(2.0f);
+                mWindow.draw(playerHitbox);
+                
+                // Hitboxes de enemigos (100% - tamaño exacto)
+                for (auto& enemy : mEnemigos) {
+                    sf::FloatRect enemyBounds = enemy.getSprite().getGlobalBounds();
+                    sf::RectangleShape enemyHitbox;
+                    enemyHitbox.setPosition(enemyBounds.left, enemyBounds.top);
+                    enemyHitbox.setSize(sf::Vector2f(enemyBounds.width, enemyBounds.height));
+                    enemyHitbox.setFillColor(sf::Color(0, 0, 255, 80));  // Azul semitransparente
+                    enemyHitbox.setOutlineColor(sf::Color::Blue);
+                    enemyHitbox.setOutlineThickness(2.0f);
+                    mWindow.draw(enemyHitbox);
+                }
+            }
+            
             mWindow.draw(mBarBackground);
             mWindow.draw(mRedBar);
             mWindow.draw(mBarGlass);
@@ -384,8 +431,10 @@ void Game::updateRoadScale() {
     mCarrilLimits[4] = carrilesRight;  // Borde derecho
     
     sf::Vector2f newPlayerSize(mBaseCarSize.x * mCarScaleFactor, mBaseCarSize.y * mCarScaleFactor);
-    mPlayer.setSize(newPlayerSize);
-    mPlayer.setOrigin(newPlayerSize.x * 0.5f, newPlayerSize.y * 0.5f);
+    sf::FloatRect playerBounds = mPlayer.getLocalBounds();
+    float playerScaleX = newPlayerSize.x / playerBounds.width;
+    float playerScaleY = newPlayerSize.y / playerBounds.height;
+    mPlayer.setScale(playerScaleX, playerScaleY);
 
     for (auto& enemy : mEnemigos) {
         int lane = enemy.getLane();
@@ -409,7 +458,8 @@ void Game::updateRoadScale() {
 
 void Game::clampPlayer() {
     sf::Vector2f pos = mPlayer.getPosition();
-    float halfW = mPlayer.getSize().x * 0.5f;
+    sf::FloatRect bounds = mPlayer.getGlobalBounds();
+    float halfW = bounds.width * 0.5f;
 
     if (pos.x < mPlayableLeft + halfW) pos.x = mPlayableLeft + halfW;
     if (pos.x > mPlayableRight - halfW) pos.x = mPlayableRight - halfW;

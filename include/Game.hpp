@@ -9,6 +9,7 @@
 #include "GameOver.hpp"
 #include "Score.hpp"
 #include "HighScore.hpp"
+#include "Difficulty.hpp"
 
 class Game {
 public:
@@ -36,6 +37,7 @@ private:
     GameOverScreen mGameOverScreen;
     Score mScore;
     HighScore mHighScore;
+    DifficultyManager mDifficulty;
     bool mIsFullscreen;
     
     // --- Recursos (Assets) ---
@@ -44,11 +46,13 @@ private:
     sf::Texture mBarBackgroundTexture;
     sf::Texture mBarGlassTexture;
     sf::Texture mRedBarTexture;
+    sf::Texture mPlayerTexture;
+    std::vector<sf::Texture> mEnemyTextures;
     
     // --- Entidades del Juego ---
     sf::Sprite mRoad1;
     sf::Sprite mRoad2;
-    sf::RectangleShape mPlayer;
+    sf::Sprite mPlayer;
     
     // --- Variables de Lógica ---
     float mScrollSpeed;

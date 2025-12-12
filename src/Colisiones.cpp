@@ -1,7 +1,7 @@
 #include "Colisiones.hpp"
 
 void ColisionManager::checkGasolinaCollisions(
-    const sf::RectangleShape& player,
+    const sf::Sprite& player,
     std::vector<Gasolina>& gasolinas,
     float& gasolinaActual,
     float gasolinaMax
@@ -27,31 +27,21 @@ void ColisionManager::checkGasolinaCollisions(
 }
 
 void ColisionManager::checkEnemyCollisions(
-    const sf::RectangleShape& player,
+    const sf::Sprite& player,
     std::vector<Enemy>& enemigos,
     float& gasolinaActual,
     float collisionPenalty
 ) {
     sf::FloatRect playerBounds = player.getGlobalBounds();
     
-    // Reducir hitbox del jugador para colisiones más justas (70% del tamaño)
-    float reductionX = playerBounds.width * 0.15f;
-    float reductionY = playerBounds.height * 0.15f;
-    playerBounds.left += reductionX;
-    playerBounds.top += reductionY;
-    playerBounds.width -= reductionX * 2.0f;
-    playerBounds.height -= reductionY * 2.0f;
+    // Hitbox del jugador al 100% (tamaño exacto del sprite)
+    // Sin expansión
 
     for (auto it = enemigos.begin(); it != enemigos.end(); ) {
-        sf::FloatRect enemyBounds = it->getShape().getGlobalBounds();
+        sf::FloatRect enemyBounds = it->getSprite().getGlobalBounds();
         
-        // Reducir hitbox del enemigo también (70% del tamaño)
-        float enemyReductionX = enemyBounds.width * 0.15f;
-        float enemyReductionY = enemyBounds.height * 0.15f;
-        enemyBounds.left += enemyReductionX;
-        enemyBounds.top += enemyReductionY;
-        enemyBounds.width -= enemyReductionX * 2.0f;
-        enemyBounds.height -= enemyReductionY * 2.0f;
+        // Hitbox del enemigo al 100% (tamaño exacto del sprite)
+        // Sin expansión
         
         if (playerBounds.intersects(enemyBounds)) {
             // Aplicar penalización de gasolina
