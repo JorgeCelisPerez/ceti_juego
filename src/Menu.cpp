@@ -51,6 +51,9 @@ void Menu::setupUI() {
     mPanelShadow.setOrigin(panelSize.x / 2, panelSize.y / 2);
     mPanelShadow.setPosition(mPanel.getPosition().x + 10, mPanel.getPosition().y + 10);
     
+    // Limpiar items existentes antes de recrearlos
+    mMenuItems.clear();
+    
     // Configurar y añadir "Empezar"
     sf::Text playButton;
     playButton.setFont(mFont);
