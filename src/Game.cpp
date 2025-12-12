@@ -46,11 +46,14 @@ Game::Game()
       mCarrilesRightOffset(-30.0f),
       mDivision1Offset(-6.0f),
       mDivision2Offset(-2.0f),
-      mDivision3Offset(6.0f)
+      mDivision3Offset(6.0f),
+      mCombustibleOffsetX(0.0f),
+      mCombustibleOffsetY(160.0f)
 {
     // Establecer resolución base para escalado de UI
     mScore.setBaseResolution(mBaseResolutionWidth, mBaseResolutionHeight);
     mHighScore.setBaseResolution(mBaseResolutionWidth, mBaseResolutionHeight);
+    mControlsDisplay.setBaseResolution(mBaseResolutionWidth, mBaseResolutionHeight);
     
     mWindow.setVerticalSyncEnabled(true);
     srand(static_cast<unsigned int>(time(NULL)));
@@ -62,6 +65,17 @@ Game::Game()
     if (!mRedBarTexture.loadFromFile("assets/images/RedBar.png")) { exit(1); }
     if (!mPlayerTexture.loadFromFile("assets/images/Black_viper.png")) { exit(1); }
     if (!mTruckTexture.loadFromFile("assets/images/truck.png")) { exit(1); }
+    
+    // Cargar fuente para texto Combustible
+    if (!mCombustibleFont.loadFromFile("assets/fonts/Speed Rusher.ttf")) {
+        if (!mCombustibleFont.loadFromFile("assets/fonts/arial.ttf")) { exit(1); }
+    }
+    
+    // Configurar texto Combustible
+    mCombustibleText.setFont(mCombustibleFont);
+    mCombustibleText.setString("Combustible");
+    mCombustibleText.setCharacterSize(35);
+    mCombustibleText.setFillColor(sf::Color::Black);
     
     // Cargar texturas de enemigos
     mEnemyTextures.resize(7);
@@ -88,6 +102,12 @@ Game::Game()
     mBarBackground.setTexture(mBarBackgroundTexture);
     mBarGlass.setTexture(mBarGlassTexture);
     mRedBar.setTexture(mRedBarTexture);
+    
+    updateRoadScale();
+    
+    float windowWidth = static_cast<float>(mWindow.getSize().x);
+    float windowHeight = static_cast<float>(mWindow.getSize().y);
+    mControlsDisplay.updatePosition(windowWidth, windowHeight);
 }
 
 void Game::startGame() {
@@ -150,12 +170,11 @@ void Game::processEvents() {
                     }
                     if (event.key.code == sf::Keyboard::F1) {
                         mDebugBounds = !mDebugBounds;
+                        mControlsDisplay.setDebugMode(mDebugBounds);
                         if (mDebugBounds) {
                             std::cout << "\n=== MODO DEBUG ACTIVADO ===" << std::endl;
                             std::cout << "Controles:" << std::endl;
-                            std::cout << "  Numpad 8/2/4/6: Mover High Score" << std::endl;
-                            std::cout << "  F2: Mostrar valores actuales" << std::endl;
-                            std::cout << "\n(Carriles ya fijos)" << std::endl;
+                            std::cout << "  F2: Mostrar coordenadas actuales" << std::endl;
                         }
                     }
                     if (event.key.code == sf::Keyboard::F11) {
@@ -201,15 +220,15 @@ void Game::processEvents() {
                         //     updateRoadScale();
                         // }
                         
-                        // Mostrar valores actuales
+                        // Mostrar coordenadas actuales de ControlsDisplay
                         if (event.key.code == sf::Keyboard::F2) {
-                            std::cout << "\n--- Valores Actuales ---" << std::endl;
-                            std::cout << "High Score Offset: X=" << mHighScoreOffsetX << ", Y=" << mHighScoreOffsetY << std::endl;
-                            std::cout << "Carriles Left Offset: " << mCarrilesLeftOffset << std::endl;
-                            std::cout << "Carriles Right Offset: " << mCarrilesRightOffset << std::endl;
-                            std::cout << "División 1 Offset: " << mDivision1Offset << std::endl;
-                            std::cout << "División 2 Offset: " << mDivision2Offset << std::endl;
-                            std::cout << "División 3 Offset: " << mDivision3Offset << std::endl;
+                            mControlsDisplay.printCoordinates();
+                            
+                            // Mostrar coordenadas del texto Combustible
+                            sf::Vector2f combustiblePos = mCombustibleText.getPosition();
+                            std::cout << "\n=== Texto Combustible ===" << std::endl;
+                            std::cout << "X: " << combustiblePos.x << ", Y: " << combustiblePos.y << std::endl;
+                            std::cout << "Offset X: " << mCombustibleOffsetX << ", Offset Y: " << mCombustibleOffsetY << std::endl;
                         }
                     }
                 }
@@ -296,7 +315,7 @@ void Game::update(sf::Time dt) {
                 if (mRoad1.getPosition().y >= mTextureHeight) mRoad1.setPosition(0.f, mRoad2.getPosition().y - mTextureHeight);
                 if (mRoad2.getPosition().y >= mTextureHeight) mRoad2.setPosition(0.f, mRoad1.getPosition().y - mTextureHeight);
 
-                float input = getHorizontalInput();
+                float input = getHorizontalInput(mDebugBounds);
                 mPlayer.move(input * mPlayerSpeed * timeSeconds, 0.f);
 
                 sf::Vector2f pos = mPlayer.getPosition();
@@ -431,6 +450,7 @@ void Game::render() {
     switch (mGameState) {
         case GameState::Menu:
             mMenu.draw();
+            mControlsDisplay.draw(mWindow);
             break;
         case GameState::Playing:
         case GameState::GameOver:
@@ -468,17 +488,29 @@ void Game::render() {
             mWindow.draw(mBarBackground);
             mWindow.draw(mRedBar);
             mWindow.draw(mBarGlass);
+            mWindow.draw(mCombustibleText);
             
             // Dibujar puntuación
             if (mGameState == GameState::Playing) {
                 mScore.draw(mWindow);
                 mHighScore.draw(mWindow);
+                mControlsDisplay.draw(mWindow);
             }
 
             if (mDebugBounds) {
                 // Dibujar debug del score
                 mScore.drawDebug(mWindow);
                 mHighScore.drawDebug(mWindow);
+                
+                // Dibujar hitbox del texto Combustible
+                sf::FloatRect combustibleBounds = mCombustibleText.getGlobalBounds();
+                sf::RectangleShape combustibleHitbox;
+                combustibleHitbox.setPosition(combustibleBounds.left, combustibleBounds.top);
+                combustibleHitbox.setSize(sf::Vector2f(combustibleBounds.width, combustibleBounds.height));
+                combustibleHitbox.setFillColor(sf::Color(255, 165, 0, 50)); // Naranja semi-transparente
+                combustibleHitbox.setOutlineThickness(2.f);
+                combustibleHitbox.setOutlineColor(sf::Color(255, 165, 0)); // Naranja
+                mWindow.draw(combustibleHitbox);
                 
                 // Dibujar debug de la barra de gasolina
                 sf::RectangleShape barDebugBox;
@@ -527,8 +559,10 @@ void Game::render() {
             mWindow.draw(mBarBackground);
             mWindow.draw(mRedBar);
             mWindow.draw(mBarGlass);
+            mWindow.draw(mCombustibleText);
             mScore.draw(mWindow);
             mHighScore.draw(mWindow);
+            mControlsDisplay.draw(mWindow);
             
             // Dibujar menú de pausa encima
             mPauseMenu.draw();
@@ -641,6 +675,17 @@ void Game::updateGasolinaBar() {
     mRedBar.setScale(scale, scale);
     sf::Vector2u redBarTextureSize = mRedBarTexture.getSize();
     mRedBar.setTextureRect(sf::IntRect(0, 0, static_cast<int>(redBarTextureSize.x * porcentaje), redBarTextureSize.y));
+    
+    // Posicionar texto "Combustible" arriba de la barra con escalado
+    float scaleY = windowHeight / mBaseResolutionHeight;
+    unsigned int combustibleSize = static_cast<unsigned int>(35.0f * scaleY);
+    mCombustibleText.setCharacterSize(combustibleSize);
+    
+    sf::FloatRect textBounds = mCombustibleText.getLocalBounds();
+    float scaledOffsetY = mCombustibleOffsetY * scaleY;
+    float textX = mBarPosition.x + (mBarSize.x - textBounds.width) * 0.5f;
+    float textY = mBarPosition.y - textBounds.height - (10.0f * scaleY) + scaledOffsetY;
+    mCombustibleText.setPosition(textX, textY);
 }
 
 void Game::toggleFullscreen() {
@@ -696,4 +741,5 @@ void Game::toggleFullscreen() {
     mGameOverScreen.resize(newWindowWidth, newWindowHeight);
     mScore.update(newWindowWidth, newWindowHeight, mScoreOffsetX, mScoreOffsetY);
     mHighScore.update(newWindowWidth, newWindowHeight, mHighScoreOffsetX, mHighScoreOffsetY);
+    mControlsDisplay.updatePosition(newWindowWidth, newWindowHeight);
 }

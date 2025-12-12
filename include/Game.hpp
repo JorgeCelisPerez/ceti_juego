@@ -11,6 +11,7 @@
 #include "HighScore.hpp"
 #include "Difficulty.hpp"
 #include "PauseMenu.hpp"
+#include "ControlsDisplay.hpp"
 
 class Game {
 public:
@@ -39,6 +40,7 @@ private:
     PauseMenu mPauseMenu;
     Score mScore;
     HighScore mHighScore;
+    ControlsDisplay mControlsDisplay;
     DifficultyManager mDifficulty;
     bool mIsFullscreen;
     
@@ -100,6 +102,12 @@ private:
     sf::Sprite mRedBar;
     sf::Vector2f mBarPosition;
     sf::Vector2f mBarSize;
+    
+    // --- Texto Combustible ---
+    sf::Font mCombustibleFont;
+    sf::Text mCombustibleText;
+    float mCombustibleOffsetX;
+    float mCombustibleOffsetY;
     
     // --- Sistema de Puntuación ---
     float mScoreAccumulator;
