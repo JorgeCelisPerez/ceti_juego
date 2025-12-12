@@ -5,6 +5,8 @@
 #include "Enemigo.hpp"
 #include "Gasolina.hpp"
 #include "Colisiones.hpp"
+#include "Menu.hpp"
+#include "GameOver.hpp"
 
 class Game {
 public:
@@ -15,13 +17,20 @@ private:
     void processEvents();
     void update(sf::Time dt);
     void render();
+
+    void startGame();
     void updateRoadScale();
     void clampPlayer();
     void updateGasolinaBar();
 
 private:
-    // --- Variables de la Ventana ---
+    enum class GameState { Menu, Playing, GameOver };
+    GameState mGameState;
+
+    // --- Ventana y Pantallas ---
     sf::RenderWindow mWindow;
+    Menu mMenu;
+    GameOverScreen mGameOverScreen;
     bool mIsFullscreen;
     
     // --- Recursos (Assets) ---
@@ -32,7 +41,6 @@ private:
     sf::Texture mRedBarTexture;
     
     // --- Entidades del Juego ---
-    // Usamos dos sprites para el fondo infinito
     sf::Sprite mRoad1;
     sf::Sprite mRoad2;
     sf::RectangleShape mPlayer;
@@ -41,7 +49,7 @@ private:
     float mScrollSpeed;
     float mTextureHeight;
     float mPlayerSpeed;
-    float mRoadMarginTexturePx; // margen lateral en píxeles de la textura original
+    float mRoadMarginTexturePx;
     float mPlayableLeft;
     float mPlayableRight;
     bool mDebugBounds;
@@ -71,7 +79,6 @@ private:
     float mGasolinaActual;
     float mGasolinaMax;
     float mGasolinaConsumoRate;
-    bool mGameOver;
     
     // --- UI Barra de Gasolina ---
     sf::Sprite mBarBackground;
