@@ -4,6 +4,7 @@
 #include "Teclado.hpp"
 #include "Enemigo.hpp"
 #include "Gasolina.hpp"
+#include "Colisiones.hpp"
 
 class Game {
 public:
@@ -16,8 +17,6 @@ private:
     void render();
     void updateRoadScale();
     void clampPlayer();
-    void checkGasolinaCollisions();
-    void checkEnemyCollisions();
     void updateGasolinaBar();
 
 private:

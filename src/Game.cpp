@@ -227,10 +227,12 @@ void Game::update(sf::Time dt) {
     }
     
     // Comprobar colisiones con gasolina
-    checkGasolinaCollisions();
+    ColisionManager::checkGasolinaCollisions(mPlayer, mGasolinas, mGasolinaActual, mGasolinaMax);
+    updateGasolinaBar();
 
     // Comprobar colisiones con enemigos
-    checkEnemyCollisions();
+    ColisionManager::checkEnemyCollisions(mPlayer, mEnemigos, mGasolinaActual);
+    updateGasolinaBar();
     
     // Eliminar enemigos fuera de pantalla
     float windowHeight = static_cast<float>(mWindow.getSize().y);
@@ -394,51 +396,6 @@ void Game::clampPlayer() {
     if (pos.x > mPlayableRight - halfW) pos.x = mPlayableRight - halfW;
 
     mPlayer.setPosition(pos.x, pos.y);
-}
-
-void Game::checkGasolinaCollisions() {
-    sf::FloatRect playerBounds = mPlayer.getGlobalBounds();
-    
-    for (auto it = mGasolinas.begin(); it != mGasolinas.end(); ) {
-        sf::FloatRect gasolinaBounds = it->getSprite().getGlobalBounds();
-        
-        if (playerBounds.intersects(gasolinaBounds)) {
-            // Recargar gasolina
-            mGasolinaActual += it->getRecargaAmount();
-            if (mGasolinaActual > mGasolinaMax) {
-                mGasolinaActual = mGasolinaMax;
-            }
-            updateGasolinaBar();
-            
-            // Eliminar el item recolectado
-            it = mGasolinas.erase(it);
-        } else {
-            ++it;
-        }
-    }
-}
-
-void Game::checkEnemyCollisions() {
-    const float collisionPenalty = 25.0f; // Penalización de gasolina por choque
-    sf::FloatRect playerBounds = mPlayer.getGlobalBounds();
-
-    for (auto it = mEnemigos.begin(); it != mEnemigos.end(); ) {
-        sf::FloatRect enemyBounds = it->getShape().getGlobalBounds();
-        
-        if (playerBounds.intersects(enemyBounds)) {
-            // Aplicar penalización de gasolina
-            mGasolinaActual -= collisionPenalty;
-            if (mGasolinaActual < 0.0f) {
-                mGasolinaActual = 0.0f;
-            }
-            updateGasolinaBar();
-            
-            // Eliminar el enemigo colisionado para evitar penalizaciones múltiples
-            it = mEnemigos.erase(it);
-        } else {
-            ++it;
-        }
-    }
 }
 
 void Game::updateGasolinaBar() {
