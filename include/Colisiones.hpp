@@ -3,6 +3,7 @@
 #include <vector>
 #include "Enemigo.hpp"
 #include "Gasolina.hpp"
+#include "SoundManager.hpp"
 
 class ColisionManager {
 public:
@@ -11,7 +12,8 @@ public:
         const sf::Sprite& player,
         std::vector<Gasolina>& gasolinas,
         float& gasolinaActual,
-        float gasolinaMax
+        float gasolinaMax,
+        SoundManager& soundManager
     );
 
     // Comprobar colisiones del jugador con enemigos
@@ -19,6 +21,7 @@ public:
         const sf::Sprite& player,
         std::vector<Enemy>& enemigos,
         float& gasolinaActual,
-        float collisionPenalty = 25.0f
+        float collisionPenalty,
+        SoundManager& soundManager
     );
 };

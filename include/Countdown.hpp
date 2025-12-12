@@ -2,6 +2,7 @@
 #define COUNTDOWN_HPP
 
 #include <SFML/Graphics.hpp>
+#include "SoundManager.hpp"
 
 class Countdown {
 public:
@@ -9,6 +10,7 @@ public:
     bool init(const sf::Font& font);
     
     void reset();  // Reiniciar el countdown a 3
+    void start(SoundManager& soundManager);  // Iniciar countdown con sonido
     void update(float deltaTime);
     bool isFinished() const;  // true cuando termina y debe empezar el juego
     void draw(sf::RenderWindow& window);

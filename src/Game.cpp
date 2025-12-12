@@ -81,6 +81,9 @@ Game::Game()
     // Inicializar Countdown
     mCountdown.init(mCombustibleFont);
     
+    // Inicializar SoundManager
+    mSoundManager.init();
+    
     // Cargar texturas de enemigos
     mEnemyTextures.resize(7);
     if (!mEnemyTextures[0].loadFromFile("assets/images/Ambulance.png")) { exit(1); }
@@ -120,7 +123,7 @@ void Game::resetHighScore() {
 
 void Game::startGame() {
     mGameState = GameState::Countdown;
-    mCountdown.reset();
+    mCountdown.start(mSoundManager);  // Iniciar countdown con sonido
     mGasolinaActual = mGasolinaMax;
     mHighScoreInicial = mHighScore.getHighScore();  // Guardar high score antes de empezar
     mIsTouchingBoundary = false;
@@ -355,6 +358,7 @@ void Game::update(sf::Time dt) {
                     mGameOverScreen.setScore(scoreActual); // Establecer score en pantalla de Game Over
                     mGameOverScreen.reset(); // Usar la nueva clase
                     mGameState = GameState::GameOver;
+                    mSoundManager.playGameOverSound(); // Reproducir sonido de game over
                     return; 
                 }
 
@@ -379,6 +383,11 @@ void Game::update(sf::Time dt) {
                     // Si ya estaba tocando, aplica la penalización continua.
                     // Si es la primera vez, aplica la penalización inicial.
                     mGasolinaActual -= (mIsTouchingBoundary ? mBoundaryContinuousPenalty * timeSeconds : mBoundaryPenalty);
+                    
+                    // Reproducir sonido solo en el primer contacto
+                    if (!mIsTouchingBoundary) {
+                        mSoundManager.playCrashSound();
+                    }
                 }
                 mIsTouchingBoundary = isCurrentlyTouching;
 
@@ -485,8 +494,8 @@ void Game::update(sf::Time dt) {
                 mEnemigos.erase(std::remove_if(mEnemigos.begin(), mEnemigos.end(), [windowHeight](const auto& e) { return e.isOutOfBounds(windowHeight); }), mEnemigos.end());
                 mGasolinas.erase(std::remove_if(mGasolinas.begin(), mGasolinas.end(), [windowHeight](const auto& g) { return g.isOutOfBounds(windowHeight); }), mGasolinas.end());
 
-                ColisionManager::checkGasolinaCollisions(mPlayer, mGasolinas, mGasolinaActual, mGasolinaMax);
-                ColisionManager::checkEnemyCollisions(mPlayer, mEnemigos, mGasolinaActual);
+                ColisionManager::checkGasolinaCollisions(mPlayer, mGasolinas, mGasolinaActual, mGasolinaMax, mSoundManager);
+                ColisionManager::checkEnemyCollisions(mPlayer, mEnemigos, mGasolinaActual, 25.0f, mSoundManager);
 
                 // Actualizar posiciones con offsets si está en modo debug
                 if (mDebugBounds) {

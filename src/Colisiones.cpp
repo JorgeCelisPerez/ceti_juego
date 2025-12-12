@@ -4,7 +4,8 @@ void ColisionManager::checkGasolinaCollisions(
     const sf::Sprite& player,
     std::vector<Gasolina>& gasolinas,
     float& gasolinaActual,
-    float gasolinaMax
+    float gasolinaMax,
+    SoundManager& soundManager
 ) {
     sf::FloatRect playerBounds = player.getGlobalBounds();
     
@@ -18,6 +19,9 @@ void ColisionManager::checkGasolinaCollisions(
                 gasolinaActual = gasolinaMax;
             }
             
+            // Reproducir sonido de item recogido
+            soundManager.playItemSound();
+            
             // Eliminar el item recolectado
             it = gasolinas.erase(it);
         } else {
@@ -30,7 +34,8 @@ void ColisionManager::checkEnemyCollisions(
     const sf::Sprite& player,
     std::vector<Enemy>& enemigos,
     float& gasolinaActual,
-    float collisionPenalty
+    float collisionPenalty,
+    SoundManager& soundManager
 ) {
     sf::FloatRect playerBounds = player.getGlobalBounds();
     
@@ -49,6 +54,9 @@ void ColisionManager::checkEnemyCollisions(
             if (gasolinaActual < 0.0f) {
                 gasolinaActual = 0.0f;
             }
+            
+            // Reproducir sonido de crash
+            soundManager.playCrashSound();
             
             // Eliminar el enemigo colisionado para evitar penalizaciones múltiples
             it = enemigos.erase(it);
