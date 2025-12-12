@@ -81,6 +81,9 @@ Game::Game()
     // Inicializar Countdown
     mCountdown.init(mCombustibleFont);
     
+    // Inicializar SoundManager
+    mSoundManager.init();
+    
     // Cargar texturas de enemigos
     mEnemyTextures.resize(7);
     if (!mEnemyTextures[0].loadFromFile("assets/images/Ambulance.png")) { exit(1); }
@@ -120,7 +123,9 @@ void Game::resetHighScore() {
 
 void Game::startGame() {
     mGameState = GameState::Countdown;
-    mCountdown.reset();
+    mSoundManager.playEngineRoaringSound();  // Sonido de motor rugiendo al empezar
+    mCountdown.start(mSoundManager);  // Iniciar countdown con sonido
+    mSoundManager.startEngineLoop();  // Iniciar sonido de motor
     mGasolinaActual = mGasolinaMax;
     mHighScoreInicial = mHighScore.getHighScore();  // Guardar high score antes de empezar
     mIsTouchingBoundary = false;
@@ -193,9 +198,6 @@ void Game::processEvents() {
                 break;
             case GameState::Playing:
                 if (event.type == sf::Event::KeyPressed) {
-                    if (event.key.code == sf::Keyboard::Escape) {
-                        mGameState = GameState::Menu;
-                    }
                     if (event.key.code == sf::Keyboard::F1) {
                         mDebugBounds = !mDebugBounds;
                         mControlsDisplay.setDebugMode(mDebugBounds);
@@ -203,7 +205,13 @@ void Game::processEvents() {
                             std::cout << "\n=== MODO DEBUG ACTIVADO ===" << std::endl;
                             std::cout << "Controles:" << std::endl;
                             std::cout << "  F2: Mostrar coordenadas actuales" << std::endl;
+                            std::cout << "  1-2: Cambiar loop de motor (actual: " << mSoundManager.getCurrentEngineLoop() << ")" << std::endl;
                         }
+                    }
+                    // Cambiar loop de motor con números 1-2 (solo en modo debug)
+                    if (mDebugBounds) {
+                        if (event.key.code == sf::Keyboard::Num1) mSoundManager.changeEngineLoop(1);
+                        else if (event.key.code == sf::Keyboard::Num2) mSoundManager.changeEngineLoop(2);
                     }
                     if (event.key.code == sf::Keyboard::F11) {
                         toggleFullscreen();
@@ -212,6 +220,8 @@ void Game::processEvents() {
                     // Pausar con ESC o P
                     if (event.key.code == sf::Keyboard::Escape || event.key.code == sf::Keyboard::P) {
                         mGameState = GameState::Paused;
+                        mSoundManager.pauseEngineLoop();
+                        mSoundManager.pauseCountdownSound();
                     }
                     
                     // Ajustar posición del High Score (Numpad)
@@ -265,6 +275,8 @@ void Game::processEvents() {
                 if (event.type == sf::Event::KeyPressed) {
                     if (event.key.code == sf::Keyboard::Escape || event.key.code == sf::Keyboard::P) {
                         mGameState = GameState::Playing;
+                        mSoundManager.resumeEngineLoop();
+                        mSoundManager.resumeCountdownSound();
                     }
                     if (event.key.code == sf::Keyboard::Up) {
                         mPauseMenu.moveUp();
@@ -277,12 +289,15 @@ void Game::processEvents() {
                         switch (selected) {
                             case 0:  // Reanudar
                                 mGameState = GameState::Playing;
+                                mSoundManager.resumeEngineLoop();
+                                mSoundManager.resumeCountdownSound();
                                 break;
                             case 1:  // Reiniciar
                                 startGame();
                                 break;
                             case 2:  // Salir al Menu
                                 mGameState = GameState::Menu;
+                                mSoundManager.stopEngineLoop();
                                 break;
                         }
                     }
@@ -331,6 +346,9 @@ void Game::update(sf::Time dt) {
                 float timeSeconds = dt.asSeconds();
                 mCountdown.update(timeSeconds);
                 
+                // Actualizar loop de motor
+                mSoundManager.updateEngineLoop();
+                
                 // Actualizar escala del countdown según el tamaño de ventana
                 float windowWidth = static_cast<float>(mWindow.getSize().x);
                 float windowHeight = static_cast<float>(mWindow.getSize().y);
@@ -345,6 +363,10 @@ void Game::update(sf::Time dt) {
         case GameState::Playing:
             {
                 float timeSeconds = dt.asSeconds();
+                
+                // Actualizar loop de motor
+                mSoundManager.updateEngineLoop();
+                
                 mGasolinaActual -= mGasolinaConsumoRate * timeSeconds;
                 if (mGasolinaActual <= 0) {
                     mGasolinaActual = 0;
@@ -355,6 +377,8 @@ void Game::update(sf::Time dt) {
                     mGameOverScreen.setScore(scoreActual); // Establecer score en pantalla de Game Over
                     mGameOverScreen.reset(); // Usar la nueva clase
                     mGameState = GameState::GameOver;
+                    mSoundManager.playGameOverSound(); // Reproducir sonido de game over
+                    mSoundManager.stopEngineLoop();  // Detener sonido de motor
                     return; 
                 }
 
@@ -379,6 +403,11 @@ void Game::update(sf::Time dt) {
                     // Si ya estaba tocando, aplica la penalización continua.
                     // Si es la primera vez, aplica la penalización inicial.
                     mGasolinaActual -= (mIsTouchingBoundary ? mBoundaryContinuousPenalty * timeSeconds : mBoundaryPenalty);
+                    
+                    // Reproducir sonido solo en el primer contacto
+                    if (!mIsTouchingBoundary) {
+                        mSoundManager.playCrashSound();
+                    }
                 }
                 mIsTouchingBoundary = isCurrentlyTouching;
 
@@ -485,8 +514,8 @@ void Game::update(sf::Time dt) {
                 mEnemigos.erase(std::remove_if(mEnemigos.begin(), mEnemigos.end(), [windowHeight](const auto& e) { return e.isOutOfBounds(windowHeight); }), mEnemigos.end());
                 mGasolinas.erase(std::remove_if(mGasolinas.begin(), mGasolinas.end(), [windowHeight](const auto& g) { return g.isOutOfBounds(windowHeight); }), mGasolinas.end());
 
-                ColisionManager::checkGasolinaCollisions(mPlayer, mGasolinas, mGasolinaActual, mGasolinaMax);
-                ColisionManager::checkEnemyCollisions(mPlayer, mEnemigos, mGasolinaActual);
+                ColisionManager::checkGasolinaCollisions(mPlayer, mGasolinas, mGasolinaActual, mGasolinaMax, mSoundManager);
+                ColisionManager::checkEnemyCollisions(mPlayer, mEnemigos, mGasolinaActual, 25.0f, mSoundManager);
 
                 // Actualizar posiciones con offsets si está en modo debug
                 if (mDebugBounds) {
@@ -499,7 +528,8 @@ void Game::update(sf::Time dt) {
             }
             break;
         case GameState::Paused:
-            // No actualizar nada, juego pausado
+            // NO actualizar el loop mientras está pausado
+            // Esto previene reinicios cuando el audio termina durante la pausa
             break;
         case GameState::GameOver:
             // El jugador elige qué hacer (Reintentar o Salir)

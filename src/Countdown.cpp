@@ -25,6 +25,11 @@ void Countdown::reset() {
     mCountdownText.setFillColor(sf::Color::Yellow);
 }
 
+void Countdown::start(SoundManager& soundManager) {
+    reset();
+    soundManager.playCountdownSound();
+}
+
 void Countdown::update(float deltaTime) {
     if (mFinished) return;
     

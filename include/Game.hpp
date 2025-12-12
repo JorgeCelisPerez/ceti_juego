@@ -14,6 +14,7 @@
 #include "ControlsDisplay.hpp"
 #include "GestorTemas.hpp"
 #include "Countdown.hpp"
+#include "SoundManager.hpp"
 
 class Game {
 public:
@@ -38,6 +39,9 @@ private:
     
     // --- Countdown ---
     Countdown mCountdown;
+    
+    // --- Sonidos ---
+    SoundManager mSoundManager;
 
     // --- Ventana y Pantallas ---
     sf::RenderWindow mWindow;
