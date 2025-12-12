@@ -10,6 +10,7 @@ Game::Game()
     : mWindow(sf::VideoMode::getDesktopMode(), "Traffic Racer", sf::Style::Fullscreen),
       mMenu(mWindow),
       mGameOverScreen(mWindow.getSize().x, mWindow.getSize().y), // Inicializa la nueva clase
+      mPauseMenu(mWindow),
       mGameState(GameState::Menu),
       mIsFullscreen(true),
       mScrollSpeed(500.f),
@@ -161,6 +162,11 @@ void Game::processEvents() {
                         toggleFullscreen();
                     }
                     
+                    // Pausar con ESC o P
+                    if (event.key.code == sf::Keyboard::Escape || event.key.code == sf::Keyboard::P) {
+                        mGameState = GameState::Paused;
+                    }
+                    
                     // Ajustar posición del High Score (Numpad)
                     if (mDebugBounds) {
                         if (event.key.code == sf::Keyboard::Numpad8) mHighScoreOffsetY -= 5.0f;
@@ -208,8 +214,59 @@ void Game::processEvents() {
                     }
                 }
                 break;
+            case GameState::Paused:
+                if (event.type == sf::Event::KeyPressed) {
+                    if (event.key.code == sf::Keyboard::Escape || event.key.code == sf::Keyboard::P) {
+                        mGameState = GameState::Playing;
+                    }
+                    if (event.key.code == sf::Keyboard::Up) {
+                        mPauseMenu.moveUp();
+                    }
+                    if (event.key.code == sf::Keyboard::Down) {
+                        mPauseMenu.moveDown();
+                    }
+                    if (event.key.code == sf::Keyboard::Enter) {
+                        int selected = mPauseMenu.getSelectedItem();
+                        switch (selected) {
+                            case 0:  // Reanudar
+                                mGameState = GameState::Playing;
+                                break;
+                            case 1:  // Reiniciar
+                                startGame();
+                                break;
+                            case 2:  // Salir al Menu
+                                mGameState = GameState::Menu;
+                                break;
+                        }
+                    }
+                    if (event.key.code == sf::Keyboard::F11) {
+                        toggleFullscreen();
+                    }
+                }
+                break;
             case GameState::GameOver:
-                // La transición es automática
+                if (event.type == sf::Event::KeyPressed) {
+                    if (event.key.code == sf::Keyboard::Up) {
+                        mGameOverScreen.moveUp();
+                    }
+                    if (event.key.code == sf::Keyboard::Down) {
+                        mGameOverScreen.moveDown();
+                    }
+                    if (event.key.code == sf::Keyboard::Enter) {
+                        int selected = mGameOverScreen.getSelectedItem();
+                        switch (selected) {
+                            case 0:  // Reintentar
+                                startGame();
+                                break;
+                            case 1:  // Salir al Menu
+                                mGameState = GameState::Menu;
+                                break;
+                        }
+                    }
+                    if (event.key.code == sf::Keyboard::F11) {
+                        toggleFullscreen();
+                    }
+                }
                 break;
         }
     }
@@ -227,6 +284,7 @@ void Game::update(sf::Time dt) {
                 if (mGasolinaActual <= 0) {
                     mGasolinaActual = 0;
                     mHighScore.checkAndUpdate(mScore.getScore()); // Actualizar high score
+                    mGameOverScreen.setScore(mScore.getScore()); // Establecer score en pantalla de Game Over
                     mGameOverScreen.reset(); // Usar la nueva clase
                     mGameState = GameState::GameOver;
                     return; 
@@ -358,11 +416,11 @@ void Game::update(sf::Time dt) {
                 updateGasolinaBar();
             }
             break;
+        case GameState::Paused:
+            // No actualizar nada, juego pausado
+            break;
         case GameState::GameOver:
-            mGameOverScreen.update(dt);
-            if (mGameOverScreen.isDone()) {
-                mGameState = GameState::Menu;
-            }
+            // El jugador elige qué hacer (Reintentar o Salir)
             break;
     }
 }
@@ -458,6 +516,22 @@ void Game::render() {
             if (mGameState == GameState::GameOver) {
                 mGameOverScreen.draw(mWindow);
             }
+            break;
+        case GameState::Paused:
+            // Dibujar juego de fondo
+            mWindow.draw(mRoad1);
+            mWindow.draw(mRoad2);
+            mWindow.draw(mPlayer);
+            for (auto& e : mEnemigos) mWindow.draw(e.getSprite());
+            for (auto& g : mGasolinas) mWindow.draw(g.getSprite());
+            mWindow.draw(mBarBackground);
+            mWindow.draw(mRedBar);
+            mWindow.draw(mBarGlass);
+            mScore.draw(mWindow);
+            mHighScore.draw(mWindow);
+            
+            // Dibujar menú de pausa encima
+            mPauseMenu.draw();
             break;
     }
 
@@ -618,6 +692,7 @@ void Game::toggleFullscreen() {
     
     // Actualizar UI de las pantallas
     mMenu.resize();
+    mPauseMenu.resize();
     mGameOverScreen.resize(newWindowWidth, newWindowHeight);
     mScore.update(newWindowWidth, newWindowHeight, mScoreOffsetX, mScoreOffsetY);
     mHighScore.update(newWindowWidth, newWindowHeight, mHighScoreOffsetX, mHighScoreOffsetY);

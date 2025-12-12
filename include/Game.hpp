@@ -10,6 +10,7 @@
 #include "Score.hpp"
 #include "HighScore.hpp"
 #include "Difficulty.hpp"
+#include "PauseMenu.hpp"
 
 class Game {
 public:
@@ -28,13 +29,14 @@ private:
     void toggleFullscreen();
 
 private:
-    enum class GameState { Menu, Playing, GameOver };
+    enum class GameState { Menu, Playing, Paused, GameOver };
     GameState mGameState;
 
     // --- Ventana y Pantallas ---
     sf::RenderWindow mWindow;
     Menu mMenu;
     GameOverScreen mGameOverScreen;
+    PauseMenu mPauseMenu;
     Score mScore;
     HighScore mHighScore;
     DifficultyManager mDifficulty;
