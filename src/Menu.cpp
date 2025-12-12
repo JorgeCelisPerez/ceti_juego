@@ -25,6 +25,11 @@ Menu::Menu(sf::RenderWindow& window)
     update(); // Llama inicial para colorear el primer item
 }
 
+void Menu::resize() {
+    setupUI();
+    update();
+}
+
 void Menu::setupUI() {
     sf::Vector2u windowSize = mWindow.getSize();
     float winWidth = static_cast<float>(windowSize.x);

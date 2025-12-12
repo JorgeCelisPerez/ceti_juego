@@ -48,3 +48,7 @@ void GameOverScreen::reset() {
 bool GameOverScreen::isDone() const {
     return mFinished;
 }
+
+void GameOverScreen::resize(float width, float height) {
+    setupText(width, height);
+}

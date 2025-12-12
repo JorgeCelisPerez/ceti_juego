@@ -11,6 +11,7 @@ public:
     void draw();
     MenuAction handleEvent(sf::Event& event);
     void update();
+    void resize();
 
 private:
     void moveUp();

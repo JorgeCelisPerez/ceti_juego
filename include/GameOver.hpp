@@ -10,6 +10,7 @@ public:
     void draw(sf::RenderWindow& window);
     void reset();
     bool isDone() const;
+    void resize(float width, float height);
 
 private:
     void setupText(float width, float height);

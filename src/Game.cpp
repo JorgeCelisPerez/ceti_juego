@@ -298,6 +298,12 @@ void Game::updateGasolinaBar() {
 }
 
 void Game::toggleFullscreen() {
+    // Guardar posición del jugador y dimensiones ANTES de cambiar ventana
+    sf::Vector2f savedPlayerPos = mPlayer.getPosition();
+    float savedWindowHeight = static_cast<float>(mWindow.getSize().y);
+    float savedPlayableLeft = mPlayableLeft;
+    float savedPlayableRight = mPlayableRight;
+    
     mIsFullscreen = !mIsFullscreen;
     
     if (mIsFullscreen) {
@@ -308,7 +314,27 @@ void Game::toggleFullscreen() {
     
     mWindow.setVerticalSyncEnabled(true);
     
-    // Actualizar escala después de cambiar el modo
+    // Calcular posiciones relativas con las dimensiones guardadas
+    float savedPlayableWidth = savedPlayableRight - savedPlayableLeft;
+    float playerRelativeX = (savedPlayerPos.x - savedPlayableLeft) / savedPlayableWidth;
+    float playerRelativeY = savedPlayerPos.y / savedWindowHeight;
+    
+    // Actualizar escala y límites
     updateRoadScale();
     updateGasolinaBar();
+    
+    // Restaurar jugador con posiciones relativas
+    float newWindowWidth = static_cast<float>(mWindow.getSize().x);
+    float newWindowHeight = static_cast<float>(mWindow.getSize().y);
+    float newPlayableWidth = mPlayableRight - mPlayableLeft;
+    
+    float newPlayerX = mPlayableLeft + (playerRelativeX * newPlayableWidth);
+    float newPlayerY = playerRelativeY * newWindowHeight;
+    
+    mPlayer.setPosition(newPlayerX, newPlayerY);
+    clampPlayer();
+    
+    // Actualizar UI de las pantallas
+    mMenu.resize();
+    mGameOverScreen.resize(newWindowWidth, newWindowHeight);
 }
