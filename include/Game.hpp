@@ -102,4 +102,11 @@ private:
     float mBarOffsetY;
     float mHighScoreOffsetX;
     float mHighScoreOffsetY;
+    
+    // --- Ajustes de carriles (para debug) ---
+    float mCarrilesLeftOffset;    // Offset del inicio de los carriles
+    float mCarrilesRightOffset;   // Offset del fin de los carriles
+    float mDivision1Offset;       // Offset de la primera división
+    float mDivision2Offset;       // Offset de la segunda división (centro)
+    float mDivision3Offset;       // Offset de la tercera división
 };

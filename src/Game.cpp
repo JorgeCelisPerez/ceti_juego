@@ -32,7 +32,12 @@ Game::Game()
       mBarOffsetX(45.0f),
       mBarOffsetY(-10.0f),
       mHighScoreOffsetX(40.0f),
-      mHighScoreOffsetY(20.0f)
+      mHighScoreOffsetY(20.0f),
+      mCarrilesLeftOffset(30.0f),
+      mCarrilesRightOffset(-30.0f),
+      mDivision1Offset(-6.0f),
+      mDivision2Offset(-2.0f),
+      mDivision3Offset(6.0f)
 {
     mWindow.setVerticalSyncEnabled(true);
     srand(static_cast<unsigned int>(time(NULL)));
@@ -121,7 +126,8 @@ void Game::processEvents() {
                             std::cout << "\n=== MODO DEBUG ACTIVADO ===" << std::endl;
                             std::cout << "Controles:" << std::endl;
                             std::cout << "  Numpad 8/2/4/6: Mover High Score" << std::endl;
-                            std::cout << "  F2: Mostrar posiciones actuales" << std::endl;
+                            std::cout << "  F2: Mostrar valores actuales" << std::endl;
+                            std::cout << "\n(Carriles ya fijos)" << std::endl;
                         }
                     }
                     if (event.key.code == sf::Keyboard::F11) {
@@ -135,10 +141,42 @@ void Game::processEvents() {
                         if (event.key.code == sf::Keyboard::Numpad4) mHighScoreOffsetX -= 5.0f;
                         if (event.key.code == sf::Keyboard::Numpad6) mHighScoreOffsetX += 5.0f;
                         
-                        // Mostrar posiciones actuales
+                        // --- CARRILES YA FIJOS ---
+                        // static int divisionSeleccionada = 2;
+                        // if (event.key.code == sf::Keyboard::Num1) {
+                        //     divisionSeleccionada = 1;
+                        //     std::cout << "División seleccionada: 1 (izquierda)" << std::endl;
+                        // }
+                        // if (event.key.code == sf::Keyboard::Num2) {
+                        //     divisionSeleccionada = 2;
+                        //     std::cout << "División seleccionada: 2 (centro)" << std::endl;
+                        // }
+                        // if (event.key.code == sf::Keyboard::Num3) {
+                        //     divisionSeleccionada = 3;
+                        //     std::cout << "División seleccionada: 3 (derecha)" << std::endl;
+                        // }
+                        // if (event.key.code == sf::Keyboard::Q) {
+                        //     if (divisionSeleccionada == 1) mDivision1Offset -= 2.0f;
+                        //     else if (divisionSeleccionada == 2) mDivision2Offset -= 2.0f;
+                        //     else if (divisionSeleccionada == 3) mDivision3Offset -= 2.0f;
+                        //     updateRoadScale();
+                        // }
+                        // if (event.key.code == sf::Keyboard::E) {
+                        //     if (divisionSeleccionada == 1) mDivision1Offset += 2.0f;
+                        //     else if (divisionSeleccionada == 2) mDivision2Offset += 2.0f;
+                        //     else if (divisionSeleccionada == 3) mDivision3Offset += 2.0f;
+                        //     updateRoadScale();
+                        // }
+                        
+                        // Mostrar valores actuales
                         if (event.key.code == sf::Keyboard::F2) {
-                            std::cout << "\n--- Posiciones Actuales ---" << std::endl;
+                            std::cout << "\n--- Valores Actuales ---" << std::endl;
                             std::cout << "High Score Offset: X=" << mHighScoreOffsetX << ", Y=" << mHighScoreOffsetY << std::endl;
+                            std::cout << "Carriles Left Offset: " << mCarrilesLeftOffset << std::endl;
+                            std::cout << "Carriles Right Offset: " << mCarrilesRightOffset << std::endl;
+                            std::cout << "División 1 Offset: " << mDivision1Offset << std::endl;
+                            std::cout << "División 2 Offset: " << mDivision2Offset << std::endl;
+                            std::cout << "División 3 Offset: " << mDivision3Offset << std::endl;
                         }
                     }
                 }
@@ -279,6 +317,29 @@ void Game::render() {
                 barDebugBox.setOutlineThickness(3.f);
                 barDebugBox.setOutlineColor(sf::Color::Magenta);
                 mWindow.draw(barDebugBox);
+                
+                // Dibujar límites de carriles
+                float windowHeight = static_cast<float>(mWindow.getSize().y);
+                for (int i = 0; i <= NUM_CARRILES; i++) {
+                    sf::RectangleShape carrilLine;
+                    carrilLine.setSize(sf::Vector2f(3.f, windowHeight));
+                    carrilLine.setPosition(mCarrilLimits[i], 0.f);
+                    if (i == 0 || i == NUM_CARRILES) {
+                        carrilLine.setFillColor(sf::Color(255, 0, 0, 200)); // Bordes rojos
+                    } else {
+                        carrilLine.setFillColor(sf::Color(0, 255, 255, 150)); // Líneas cyan
+                    }
+                    mWindow.draw(carrilLine);
+                }
+                
+                // Dibujar área jugable
+                sf::RectangleShape playableArea;
+                playableArea.setPosition(mPlayableLeft, 0.f);
+                playableArea.setSize(sf::Vector2f(mPlayableRight - mPlayableLeft, windowHeight));
+                playableArea.setFillColor(sf::Color(0, 255, 0, 30));
+                playableArea.setOutlineThickness(2.f);
+                playableArea.setOutlineColor(sf::Color::Green);
+                mWindow.draw(playableArea);
             }
 
             if (mGameState == GameState::GameOver) {
@@ -307,10 +368,20 @@ void Game::updateRoadScale() {
     mPlayableRight = windowWidth - (mRoadMarginTexturePx * scale);
     mCarScaleFactor = windowWidth / mReferenceWidth;
 
-    mCarrilAncho = (mPlayableRight - mPlayableLeft) / NUM_CARRILES;
-    for (int i = 0; i <= NUM_CARRILES; i++) {
-        mCarrilLimits[i] = mPlayableLeft + (i * mCarrilAncho);
-    }
+    // Calcular los carriles de forma INDEPENDIENTE del área jugable
+    // El área jugable es para el jugador, los carriles son para enemigos/gasolina
+    float carrilesLeft = mPlayableLeft + mCarrilesLeftOffset;
+    float carrilesRight = mPlayableRight + mCarrilesRightOffset;
+    float carrilesWidth = carrilesRight - carrilesLeft;
+    
+    mCarrilAncho = carrilesWidth / NUM_CARRILES;
+    
+    // Calcular límites de carriles con offsets individuales
+    mCarrilLimits[0] = carrilesLeft;  // Borde izquierdo
+    mCarrilLimits[1] = carrilesLeft + mCarrilAncho + mDivision1Offset;  // Primera división
+    mCarrilLimits[2] = carrilesLeft + (2 * mCarrilAncho) + mDivision2Offset;  // Centro
+    mCarrilLimits[3] = carrilesLeft + (3 * mCarrilAncho) + mDivision3Offset;  // Tercera división
+    mCarrilLimits[4] = carrilesRight;  // Borde derecho
     
     sf::Vector2f newPlayerSize(mBaseCarSize.x * mCarScaleFactor, mBaseCarSize.y * mCarScaleFactor);
     mPlayer.setSize(newPlayerSize);
