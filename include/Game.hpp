@@ -22,6 +22,7 @@ private:
     void updateRoadScale();
     void clampPlayer();
     void updateGasolinaBar();
+    void toggleFullscreen();
 
 private:
     enum class GameState { Menu, Playing, GameOver };

@@ -106,6 +106,9 @@ void Game::processEvents() {
                     if (event.key.code == sf::Keyboard::F1) {
                         mDebugBounds = !mDebugBounds;
                     }
+                    if (event.key.code == sf::Keyboard::F11) {
+                        toggleFullscreen();
+                    }
                 }
                 break;
             case GameState::GameOver:
@@ -292,4 +295,20 @@ void Game::updateGasolinaBar() {
     mRedBar.setScale(scale, scale);
     sf::Vector2u redBarTextureSize = mRedBarTexture.getSize();
     mRedBar.setTextureRect(sf::IntRect(0, 0, static_cast<int>(redBarTextureSize.x * porcentaje), redBarTextureSize.y));
+}
+
+void Game::toggleFullscreen() {
+    mIsFullscreen = !mIsFullscreen;
+    
+    if (mIsFullscreen) {
+        mWindow.create(sf::VideoMode::getDesktopMode(), "Traffic Racer", sf::Style::Fullscreen);
+    } else {
+        mWindow.create(sf::VideoMode(1280, 720), "Traffic Racer", sf::Style::Default);
+    }
+    
+    mWindow.setVerticalSyncEnabled(true);
+    
+    // Actualizar escala después de cambiar el modo
+    updateRoadScale();
+    updateGasolinaBar();
 }
