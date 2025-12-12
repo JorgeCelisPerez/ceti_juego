@@ -27,6 +27,7 @@ Game::Game()
       mGasolinaSpawnInterval(3.0f),
       mGasolinaMax(100.0f),
       mGasolinaConsumoRate(5.0f),
+      mHighScoreInicial(0),
       mBoundaryPenalty(10.0f),
       mBoundaryContinuousPenalty(15.0f),
       mScoreAccumulator(0.0f),
@@ -77,6 +78,9 @@ Game::Game()
     mCombustibleText.setCharacterSize(35);
     mCombustibleText.setFillColor(sf::Color::Black);
     
+    // Inicializar Countdown
+    mCountdown.init(mCombustibleFont);
+    
     // Cargar texturas de enemigos
     mEnemyTextures.resize(7);
     if (!mEnemyTextures[0].loadFromFile("assets/images/Ambulance.png")) { exit(1); }
@@ -110,9 +114,15 @@ Game::Game()
     mControlsDisplay.updatePosition(windowWidth, windowHeight);
 }
 
+void Game::resetHighScore() {
+    mHighScore.resetHighScore();
+}
+
 void Game::startGame() {
-    mGameState = GameState::Playing;
+    mGameState = GameState::Countdown;
+    mCountdown.reset();
     mGasolinaActual = mGasolinaMax;
+    mHighScoreInicial = mHighScore.getHighScore();  // Guardar high score antes de empezar
     mIsTouchingBoundary = false;
     mSpawnTimer = 0.f;
     mGasolinaSpawnTimer = 0.f;
@@ -166,6 +176,18 @@ void Game::processEvents() {
                     if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::F11) {
                         toggleFullscreen();
                         mMenu.resize();
+                    }
+                    
+                    // Resetear high score con tecla Delete en el menú
+                    if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Delete) {
+                        resetHighScore();
+                    }
+                }
+                break;
+            case GameState::Countdown:
+                if (event.type == sf::Event::KeyPressed) {
+                    if (event.key.code == sf::Keyboard::Escape) {
+                        mGameState = GameState::Menu;
                     }
                 }
                 break;
@@ -266,8 +288,10 @@ void Game::processEvents() {
                     }
                     if (event.key.code == sf::Keyboard::F11) {
                         toggleFullscreen();
-                    }
-                }
+                    }                    // Resetear high score con tecla Delete
+                    if (event.key.code == sf::Keyboard::Delete) {
+                        resetHighScore();
+                    }                }
                 break;
             case GameState::GameOver:
                 if (event.type == sf::Event::KeyPressed) {
@@ -302,18 +326,40 @@ void Game::update(sf::Time dt) {
         case GameState::Menu:
             // No se necesita update por frame, es manejado por eventos
             break;
+        case GameState::Countdown:
+            {
+                float timeSeconds = dt.asSeconds();
+                mCountdown.update(timeSeconds);
+                
+                // Actualizar escala del countdown según el tamaño de ventana
+                float windowWidth = static_cast<float>(mWindow.getSize().x);
+                float windowHeight = static_cast<float>(mWindow.getSize().y);
+                mCountdown.updateScale(windowWidth, windowHeight);
+                
+                // Cuando termina el countdown, empezar el juego
+                if (mCountdown.isFinished()) {
+                    mGameState = GameState::Playing;
+                }
+            }
+            break;
         case GameState::Playing:
             {
                 float timeSeconds = dt.asSeconds();
                 mGasolinaActual -= mGasolinaConsumoRate * timeSeconds;
                 if (mGasolinaActual <= 0) {
                     mGasolinaActual = 0;
-                    mHighScore.checkAndUpdate(mScore.getScore()); // Actualizar high score
-                    mGameOverScreen.setScore(mScore.getScore()); // Establecer score en pantalla de Game Over
+                    int scoreActual = mScore.getScore();
+                    bool esNuevoRecord = (scoreActual > mHighScoreInicial);
+                    mHighScore.checkAndUpdate(scoreActual); // Actualizar high score
+                    mGameOverScreen.setNewRecord(esNuevoRecord); // Pasar si es nuevo récord
+                    mGameOverScreen.setScore(scoreActual); // Establecer score en pantalla de Game Over
                     mGameOverScreen.reset(); // Usar la nueva clase
                     mGameState = GameState::GameOver;
                     return; 
                 }
+
+                // Actualizar high score en tiempo real (solo visualmente, no afecta detección de nuevo récord)
+                mHighScore.checkAndUpdate(mScore.getScore());
 
                 float moveAmount = mScrollSpeed * timeSeconds;
                 mRoad1.move(0.f, moveAmount);
@@ -468,6 +514,15 @@ void Game::render() {
         case GameState::Menu:
             mMenu.draw();
             mControlsDisplay.draw(mWindow);
+            break;
+        case GameState::Countdown:
+            // Dibujar el juego de fondo pero sin mover nada
+            mWindow.draw(mRoad1);
+            mWindow.draw(mRoad2);
+            mWindow.draw(mPlayer);
+            
+            // Dibujar el contador encima
+            mCountdown.draw(mWindow);
             break;
         case GameState::Playing:
         case GameState::GameOver:

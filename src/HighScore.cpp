@@ -1,8 +1,9 @@
 #include "HighScore.hpp"
 #include <iostream>
 #include <sstream>
+#include <fstream>
 
-HighScore::HighScore() : mHighScore(0), mBaseResolutionWidth(1920.0f), mBaseResolutionHeight(1080.0f) {
+HighScore::HighScore() : mHighScore(0), mIsNewRecord(false), mBaseResolutionWidth(1920.0f), mBaseResolutionHeight(1080.0f) {
     if (!mFont.loadFromFile("assets/fonts/Speed Rusher.ttf")) {
         std::cerr << "Error: No se pudo cargar la fuente para HighScore" << std::endl;
         if (!mFont.loadFromFile("assets/fonts/arial.ttf")) {
@@ -24,6 +25,8 @@ HighScore::HighScore() : mHighScore(0), mBaseResolutionWidth(1920.0f), mBaseReso
     mHighScoreValue.setFillColor(sf::Color(255, 215, 0)); // Dorado brillante
     mHighScoreValue.setStyle(sf::Text::Bold);
     mHighScoreValue.setString("0");
+    
+    load();  // Cargar high score guardado
 }
 
 void HighScore::setBaseResolution(float width, float height) {
@@ -34,7 +37,11 @@ void HighScore::setBaseResolution(float width, float height) {
 void HighScore::checkAndUpdate(int currentScore) {
     if (currentScore > mHighScore) {
         mHighScore = currentScore;
+        mIsNewRecord = true;
         updateValue();
+        save();  // Guardar automáticamente cuando hay nuevo récord
+    } else {
+        mIsNewRecord = false;
     }
 }
 
@@ -44,7 +51,16 @@ int HighScore::getHighScore() const {
 
 void HighScore::reset() {
     mHighScore = 0;
+    mIsNewRecord = false;
     updateValue();
+}
+
+void HighScore::resetHighScore() {
+    mHighScore = 0;
+    mIsNewRecord = false;
+    updateValue();
+    save();  // Guardar el reseteo
+    std::cout << "High Score reseteado a 0" << std::endl;
 }
 
 void HighScore::updateValue() {
@@ -59,6 +75,34 @@ void HighScore::updateValue() {
     float valuePosX = labelCenterX - valueBounds.width / 2.0f;
     float valuePosY = mHighScoreLabel.getPosition().y + labelBounds.height + 5.0f;
     mHighScoreValue.setPosition(valuePosX, valuePosY);
+}
+
+bool HighScore::isNewRecord() const {
+    return mIsNewRecord;
+}
+
+void HighScore::save() {
+    std::ofstream file("highscore.dat");
+    if (file.is_open()) {
+        file << mHighScore;
+        file.close();
+    } else {
+        std::cerr << "Error: No se pudo guardar el high score" << std::endl;
+    }
+}
+
+void HighScore::load() {
+    std::ifstream file("highscore.dat");
+    if (file.is_open()) {
+        file >> mHighScore;
+        file.close();
+        updateValue();
+        std::cout << "High Score cargado: " << mHighScore << std::endl;
+    } else {
+        // Archivo no existe, es la primera vez
+        mHighScore = 0;
+        std::cout << "No hay high score guardado, comenzando desde 0" << std::endl;
+    }
 }
 
 void HighScore::update(float windowWidth, float windowHeight) {

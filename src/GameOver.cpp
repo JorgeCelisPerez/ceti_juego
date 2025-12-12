@@ -7,7 +7,8 @@ GameOverScreen::GameOverScreen(float width, float height)
       mDuration(sf::seconds(3.0f)),
       mSelectedItemIndex(0),
       mButtonIdleColor(sf::Color::White),
-      mButtonHoverColor(sf::Color(255, 204, 0)) {
+      mButtonHoverColor(sf::Color(255, 204, 0)),
+      mIsNewRecord(false) {
     
     if (!mFont.loadFromFile("assets/fonts/Speed Rusher.ttf")) {
         std::cerr << "Error: No se pudo cargar la fuente 'Speed Rusher.ttf' para Game Over." << std::endl;
@@ -47,6 +48,17 @@ void GameOverScreen::setupText(float width, float height) {
     sf::FloatRect scoreBounds = mScoreText.getLocalBounds();
     mScoreText.setOrigin(scoreBounds.left + scoreBounds.width / 2.0f, scoreBounds.top + scoreBounds.height / 2.0f);
     mScoreText.setPosition(width / 2.0f, height * 0.42f);
+    
+    // Texto de Nuevo Récord
+    mNewRecordText.setFont(mFont);
+    mNewRecordText.setString("NUEVO RECORD!");
+    mNewRecordText.setCharacterSize(55);
+    mNewRecordText.setFillColor(sf::Color(255, 215, 0));  // Dorado
+    mNewRecordText.setStyle(sf::Text::Bold);
+    
+    sf::FloatRect recordBounds = mNewRecordText.getLocalBounds();
+    mNewRecordText.setOrigin(recordBounds.left + recordBounds.width / 2.0f, recordBounds.top + recordBounds.height / 2.0f);
+    mNewRecordText.setPosition(width / 2.0f, height * 0.38f);
     
     // Limpiar opciones existentes
     mMenuItems.clear();
@@ -100,11 +112,33 @@ int GameOverScreen::getSelectedItem() const {
 }
 
 void GameOverScreen::setScore(int score) {
-    mScoreText.setString("Score: " + std::to_string(score));
-    
-    // Recentrar el texto del score
-    sf::FloatRect scoreBounds = mScoreText.getLocalBounds();
-    mScoreText.setOrigin(scoreBounds.left + scoreBounds.width / 2.0f, scoreBounds.top + scoreBounds.height / 2.0f);
+    if (mIsNewRecord) {
+        // Cuando es nuevo récord, solo mostrar el número en dorado
+        mScoreText.setString(std::to_string(score));
+        mScoreText.setFillColor(sf::Color(255, 215, 0));  // Dorado para nuevo récord
+        mScoreText.setCharacterSize(50);
+        
+        // Posicionar el score un poco más abajo para que esté debajo del mensaje
+        sf::FloatRect scoreBounds = mScoreText.getLocalBounds();
+        mScoreText.setOrigin(scoreBounds.left + scoreBounds.width / 2.0f, scoreBounds.top + scoreBounds.height / 2.0f);
+        float windowHeight = mOverlay.getSize().y;
+        mScoreText.setPosition(mOverlay.getSize().x / 2.0f, windowHeight * 0.47f);
+    } else {
+        // Score normal
+        mScoreText.setString("Score: " + std::to_string(score));
+        mScoreText.setFillColor(sf::Color(255, 204, 0));  // Amarillo normal
+        mScoreText.setCharacterSize(45);
+        
+        // Recentrar el texto del score
+        sf::FloatRect scoreBounds = mScoreText.getLocalBounds();
+        mScoreText.setOrigin(scoreBounds.left + scoreBounds.width / 2.0f, scoreBounds.top + scoreBounds.height / 2.0f);
+        float windowHeight = mOverlay.getSize().y;
+        mScoreText.setPosition(mOverlay.getSize().x / 2.0f, windowHeight * 0.42f);
+    }
+}
+
+void GameOverScreen::setNewRecord(bool isNewRecord) {
+    mIsNewRecord = isNewRecord;
 }
 
 void GameOverScreen::update(sf::Time dt) {
@@ -114,6 +148,12 @@ void GameOverScreen::update(sf::Time dt) {
 void GameOverScreen::draw(sf::RenderWindow& window) {
     window.draw(mOverlay);
     window.draw(mGameOverText);
+    
+    // Si es nuevo récord, mostrar el mensaje especial
+    if (mIsNewRecord) {
+        window.draw(mNewRecordText);
+    }
+    
     window.draw(mScoreText);
     for (const auto& item : mMenuItems) {
         window.draw(item);

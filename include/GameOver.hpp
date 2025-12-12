@@ -17,6 +17,7 @@ public:
     void moveDown();
     int getSelectedItem() const;
     void setScore(int score);
+    void setNewRecord(bool isNewRecord);
 
 private:
     void setupText(float width, float height);
@@ -25,6 +26,7 @@ private:
     sf::Font mFont;
     sf::Text mGameOverText;
     sf::Text mScoreText;
+    sf::Text mNewRecordText;  // Texto separado para "¡NUEVO RECORD!"
     std::vector<sf::Text> mMenuItems;
     sf::RectangleShape mOverlay;
 
@@ -35,4 +37,5 @@ private:
     int mSelectedItemIndex;
     sf::Color mButtonIdleColor;
     sf::Color mButtonHoverColor;
+    bool mIsNewRecord;
 };

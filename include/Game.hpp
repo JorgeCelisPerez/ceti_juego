@@ -13,11 +13,13 @@
 #include "PauseMenu.hpp"
 #include "ControlsDisplay.hpp"
 #include "GestorTemas.hpp"
+#include "Countdown.hpp"
 
 class Game {
 public:
     Game();
     void run();
+    void resetHighScore();  // Método público para resetear high score
 
 private:
     void processEvents();
@@ -31,8 +33,11 @@ private:
     void toggleFullscreen();
 
 private:
-    enum class GameState { Menu, Playing, Paused, GameOver };
+    enum class GameState { Menu, Countdown, Playing, Paused, GameOver };
     GameState mGameState;
+    
+    // --- Countdown ---
+    Countdown mCountdown;
 
     // --- Ventana y Pantallas ---
     sf::RenderWindow mWindow;
@@ -97,6 +102,7 @@ private:
     float mGasolinaActual;
     float mGasolinaMax;
     float mGasolinaConsumoRate;
+    int mHighScoreInicial;  // Para detectar nuevo récord al final
     
     // --- UI Barra de Gasolina ---
     sf::Sprite mBarBackground;
