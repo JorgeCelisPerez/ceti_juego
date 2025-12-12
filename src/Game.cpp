@@ -161,6 +161,12 @@ void Game::processEvents() {
                     } else if (action == Menu::MenuAction::Exit) {
                         mWindow.close();
                     }
+                    
+                    // Permitir cambio de pantalla completa en el menú
+                    if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::F11) {
+                        toggleFullscreen();
+                        mMenu.resize();
+                    }
                 }
                 break;
             case GameState::Playing:

@@ -32,4 +32,7 @@ private:
 
     sf::Color mButtonIdleColor;
     sf::Color mButtonHoverColor;
+    
+    float mBaseResolutionWidth;
+    float mBaseResolutionHeight;
 };

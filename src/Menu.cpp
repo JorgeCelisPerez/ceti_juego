@@ -7,7 +7,9 @@ Menu::Menu(sf::RenderWindow& window)
     : mWindow(window), 
       mButtonIdleColor(sf::Color::White), 
       mButtonHoverColor(sf::Color(255, 204, 0)),
-      mSelectedItemIndex(0) {
+      mSelectedItemIndex(0),
+      mBaseResolutionWidth(static_cast<float>(sf::VideoMode::getDesktopMode().width)),
+      mBaseResolutionHeight(static_cast<float>(sf::VideoMode::getDesktopMode().height)) {
     if (!mFont.loadFromFile("assets/fonts/Speed Rusher.ttf")) {
         std::cerr << "Error: No se pudo cargar la fuente assets/fonts/Speed Rusher.ttf" << std::endl;
         if (!mFont.loadFromFile("assets/fonts/arial.ttf")) {
@@ -60,11 +62,15 @@ void Menu::setupUI() {
     // Limpiar items existentes antes de recrearlos
     mMenuItems.clear();
     
+    // Calcular escala para el tamaño de fuente
+    float scaleY = winHeight / mBaseResolutionHeight;
+    unsigned int buttonSize = static_cast<unsigned int>(60.0f * scaleY);
+    
     // Configurar y añadir "Empezar" (a la derecha)
     sf::Text playButton;
     playButton.setFont(mFont);
     playButton.setString("Empezar");
-    playButton.setCharacterSize(60);
+    playButton.setCharacterSize(buttonSize);
     sf::FloatRect playBounds = playButton.getLocalBounds();
     playButton.setOrigin(playBounds.left + playBounds.width / 2.0f, playBounds.top + playBounds.height / 2.0f);
     playButton.setPosition(winWidth * 0.85f, winHeight * 0.45f);
@@ -74,7 +80,7 @@ void Menu::setupUI() {
     sf::Text exitButton;
     exitButton.setFont(mFont);
     exitButton.setString("Salir");
-    exitButton.setCharacterSize(60);
+    exitButton.setCharacterSize(buttonSize);
     sf::FloatRect exitBounds = exitButton.getLocalBounds();
     exitButton.setOrigin(exitBounds.left + exitBounds.width / 2.0f, exitBounds.top + exitBounds.height / 2.0f);
     exitButton.setPosition(winWidth * 0.85f, winHeight * 0.6f);
