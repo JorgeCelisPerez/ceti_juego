@@ -7,6 +7,8 @@
 #include "Colisiones.hpp"
 #include "Menu.hpp"
 #include "GameOver.hpp"
+#include "Score.hpp"
+#include "HighScore.hpp"
 
 class Game {
 public:
@@ -32,6 +34,8 @@ private:
     sf::RenderWindow mWindow;
     Menu mMenu;
     GameOverScreen mGameOverScreen;
+    Score mScore;
+    HighScore mHighScore;
     bool mIsFullscreen;
     
     // --- Recursos (Assets) ---
@@ -87,4 +91,15 @@ private:
     sf::Sprite mRedBar;
     sf::Vector2f mBarPosition;
     sf::Vector2f mBarSize;
+    
+    // --- Sistema de Puntuación ---
+    float mScoreAccumulator;
+    
+    // --- Ajustes de UI (para debug) ---
+    float mScoreOffsetX;
+    float mScoreOffsetY;
+    float mBarOffsetX;
+    float mBarOffsetY;
+    float mHighScoreOffsetX;
+    float mHighScoreOffsetY;
 };

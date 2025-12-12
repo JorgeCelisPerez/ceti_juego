@@ -25,7 +25,14 @@ Game::Game()
       mGasolinaMax(100.0f),
       mGasolinaConsumoRate(5.0f),
       mBoundaryPenalty(10.0f),
-      mBoundaryContinuousPenalty(15.0f)
+      mBoundaryContinuousPenalty(15.0f),
+      mScoreAccumulator(0.0f),
+      mScoreOffsetX(-100.0f),
+      mScoreOffsetY(20.0f),
+      mBarOffsetX(45.0f),
+      mBarOffsetY(-10.0f),
+      mHighScoreOffsetX(40.0f),
+      mHighScoreOffsetY(20.0f)
 {
     mWindow.setVerticalSyncEnabled(true);
     srand(static_cast<unsigned int>(time(NULL)));
@@ -56,6 +63,9 @@ void Game::startGame() {
     mIsTouchingBoundary = false;
     mSpawnTimer = 0.f;
     mGasolinaSpawnTimer = 0.f;
+    mScoreAccumulator = 0.0f;
+    
+    mScore.reset();
 
     mEnemigos.clear();
     mGasolinas.clear();
@@ -67,6 +77,8 @@ void Game::startGame() {
     mPlayer.setPosition(windowWidth * 0.5f, windowHeight * 0.75f);
     clampPlayer();
     
+    mScore.update(windowWidth, windowHeight, mScoreOffsetX, mScoreOffsetY);
+    mHighScore.update(windowWidth, windowHeight, mHighScoreOffsetX, mHighScoreOffsetY);
     updateGasolinaBar();
 }
 
@@ -105,9 +117,29 @@ void Game::processEvents() {
                     }
                     if (event.key.code == sf::Keyboard::F1) {
                         mDebugBounds = !mDebugBounds;
+                        if (mDebugBounds) {
+                            std::cout << "\n=== MODO DEBUG ACTIVADO ===" << std::endl;
+                            std::cout << "Controles:" << std::endl;
+                            std::cout << "  Numpad 8/2/4/6: Mover High Score" << std::endl;
+                            std::cout << "  F2: Mostrar posiciones actuales" << std::endl;
+                        }
                     }
                     if (event.key.code == sf::Keyboard::F11) {
                         toggleFullscreen();
+                    }
+                    
+                    // Ajustar posición del High Score (Numpad)
+                    if (mDebugBounds) {
+                        if (event.key.code == sf::Keyboard::Numpad8) mHighScoreOffsetY -= 5.0f;
+                        if (event.key.code == sf::Keyboard::Numpad2) mHighScoreOffsetY += 5.0f;
+                        if (event.key.code == sf::Keyboard::Numpad4) mHighScoreOffsetX -= 5.0f;
+                        if (event.key.code == sf::Keyboard::Numpad6) mHighScoreOffsetX += 5.0f;
+                        
+                        // Mostrar posiciones actuales
+                        if (event.key.code == sf::Keyboard::F2) {
+                            std::cout << "\n--- Posiciones Actuales ---" << std::endl;
+                            std::cout << "High Score Offset: X=" << mHighScoreOffsetX << ", Y=" << mHighScoreOffsetY << std::endl;
+                        }
                     }
                 }
                 break;
@@ -129,6 +161,7 @@ void Game::update(sf::Time dt) {
                 mGasolinaActual -= mGasolinaConsumoRate * timeSeconds;
                 if (mGasolinaActual <= 0) {
                     mGasolinaActual = 0;
+                    mHighScore.checkAndUpdate(mScore.getScore()); // Actualizar high score
                     mGameOverScreen.reset(); // Usar la nueva clase
                     mGameState = GameState::GameOver;
                     return; 
@@ -156,6 +189,14 @@ void Game::update(sf::Time dt) {
 
                 // Ahora, después de verificar y aplicar la penalización, corregimos la posición.
                 clampPlayer();
+                
+                // Incrementar puntuación por tiempo sobrevivido (100 puntos por segundo)
+                mScoreAccumulator += 100.0f * timeSeconds;
+                int pointsToAdd = static_cast<int>(mScoreAccumulator);
+                if (pointsToAdd > 0) {
+                    mScore.addPoints(pointsToAdd);
+                    mScoreAccumulator -= pointsToAdd;
+                }
 
                 mSpawnTimer += timeSeconds;
                 if (mSpawnTimer >= mSpawnInterval) {
@@ -182,6 +223,13 @@ void Game::update(sf::Time dt) {
                 ColisionManager::checkGasolinaCollisions(mPlayer, mGasolinas, mGasolinaActual, mGasolinaMax);
                 ColisionManager::checkEnemyCollisions(mPlayer, mEnemigos, mGasolinaActual);
 
+                // Actualizar posiciones con offsets si está en modo debug
+                if (mDebugBounds) {
+                    float windowWidth = static_cast<float>(mWindow.getSize().x);
+                    mScore.update(windowWidth, windowHeight, mScoreOffsetX, mScoreOffsetY);
+                    mHighScore.update(windowWidth, windowHeight, mHighScoreOffsetX, mHighScoreOffsetY);
+                }
+                
                 updateGasolinaBar();
             }
             break;
@@ -211,9 +259,26 @@ void Game::render() {
             mWindow.draw(mBarBackground);
             mWindow.draw(mRedBar);
             mWindow.draw(mBarGlass);
+            
+            // Dibujar puntuación
+            if (mGameState == GameState::Playing) {
+                mScore.draw(mWindow);
+                mHighScore.draw(mWindow);
+            }
 
             if (mDebugBounds) {
-                // ... (código de debug)
+                // Dibujar debug del score
+                mScore.drawDebug(mWindow);
+                mHighScore.drawDebug(mWindow);
+                
+                // Dibujar debug de la barra de gasolina
+                sf::RectangleShape barDebugBox;
+                barDebugBox.setPosition(mBarPosition);
+                barDebugBox.setSize(mBarSize);
+                barDebugBox.setFillColor(sf::Color(255, 0, 255, 50));
+                barDebugBox.setOutlineThickness(3.f);
+                barDebugBox.setOutlineColor(sf::Color::Magenta);
+                mWindow.draw(barDebugBox);
             }
 
             if (mGameState == GameState::GameOver) {
@@ -264,6 +329,11 @@ void Game::updateRoadScale() {
         gasolina.updateScale(mCarScaleFactor);
     }
     updateGasolinaBar();
+    
+    // Actualizar posición del score y high score
+    float windowHeight = static_cast<float>(mWindow.getSize().y);
+    mScore.update(windowWidth, windowHeight, mScoreOffsetX, mScoreOffsetY);
+    mHighScore.update(windowWidth, windowHeight, mHighScoreOffsetX, mHighScoreOffsetY);
 }
 
 void Game::clampPlayer() {
@@ -282,6 +352,10 @@ void Game::updateGasolinaBar() {
     float anchoDisponible = windowWidth - mPlayableRight;
     mBarSize = sf::Vector2f(anchoDisponible * 0.9f, 173.f);
     mBarPosition = sf::Vector2f(mPlayableRight + (anchoDisponible - mBarSize.x) * 0.2f, windowHeight * 0.5f - mBarSize.y * 0.5f);
+    
+    // Aplicar offset de debug
+    mBarPosition.x += mBarOffsetX;
+    mBarPosition.y += mBarOffsetY;
     
     float scale = mBarSize.x / mBarBackgroundTexture.getSize().x;
     
@@ -337,4 +411,6 @@ void Game::toggleFullscreen() {
     // Actualizar UI de las pantallas
     mMenu.resize();
     mGameOverScreen.resize(newWindowWidth, newWindowHeight);
+    mScore.update(newWindowWidth, newWindowHeight, mScoreOffsetX, mScoreOffsetY);
+    mHighScore.update(newWindowWidth, newWindowHeight, mHighScoreOffsetX, mHighScoreOffsetY);
 }
