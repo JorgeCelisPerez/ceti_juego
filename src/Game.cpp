@@ -10,7 +10,7 @@ Game::Game()
       mPauseMenu(mWindow),
       mGameState(GameState::Menu),
       mIsFullscreen(true),
-      mScrollSpeed(500.f),
+      mScrollSpeed(550.f),
       mPlayerSpeed(600.f),
       mRoadMarginTexturePx(800.f),
       mDebugBounds(false),
@@ -25,8 +25,8 @@ Game::Game()
       mGasolinaMax(100.0f),
       mGasolinaConsumoRate(5.0f),
       mHighScoreInicial(0),
-      mBoundaryPenalty(10.0f),
-      mBoundaryContinuousPenalty(15.0f),
+      mBoundaryPenalty(12.0f),
+      mBoundaryContinuousPenalty(18.0f),
       mScoreAccumulator(0.0f),
       mScoreOffsetX(-100.0f),
       mScoreOffsetY(20.0f),
@@ -127,6 +127,7 @@ void Game::startGame() {
     mSoundManager.playEngineRoaringSound();  // Sonido de motor rugiendo al empezar
     mCountdown.start(mSoundManager);  // Iniciar countdown con sonido
     mSoundManager.startEngineLoop();  // Iniciar sonido de motor
+    mSoundManager.startBackgroundMusic();  // Reiniciar música de fondo
     mSoundManager.setBackgroundMusicVolume(25.0f);  // Bajar música durante el juego
     mGasolinaActual = mGasolinaMax;
     mHighScoreInicial = mHighScore.getHighScore();  // Guardar high score antes de empezar
@@ -318,7 +319,7 @@ void Game::update(sf::Time dt) {
             {
                 float timeSeconds = dt.asSeconds();
                 
-                mGasolinaActual -= mGasolinaConsumoRate * timeSeconds;
+                mGasolinaActual -= mGasolinaConsumoRate * mDifficulty.getFuelConsumptionMultiplier() * timeSeconds;
                 if (mGasolinaActual <= 0) {
                     mGasolinaActual = 0;
                     int scoreActual = mScore.getScore();
@@ -406,7 +407,7 @@ void Game::update(sf::Time dt) {
                     // Verificar que no haya enemigos muy cerca en ese carril
                     bool canSpawn = true;
                     for (const auto& e : mEnemigos) {
-                        if (e.getLane() == randomLane && e.getY() < 100.f) {
+                        if (e.getLane() == randomLane && e.getY() < 300.f) {
                             canSpawn = false;
                             break;
                         }
@@ -434,7 +435,7 @@ void Game::update(sf::Time dt) {
                     bool canSpawn = true;
                     for (const auto& e : mEnemigos) {
                         int enemyLane = e.getLane();
-                        if ((enemyLane == baseLane || enemyLane == baseLane + 1) && e.getY() < 200.f) {
+                        if ((enemyLane == baseLane || enemyLane == baseLane + 1) && e.getY() < 400.f) {
                             canSpawn = false;
                             break;
                         }
@@ -474,7 +475,7 @@ void Game::update(sf::Time dt) {
                 mGasolinas.erase(std::remove_if(mGasolinas.begin(), mGasolinas.end(), [windowHeight](const auto& g) { return g.isOutOfBounds(windowHeight); }), mGasolinas.end());
 
                 ColisionManager::checkGasolinaCollisions(mPlayer, mGasolinas, mGasolinaActual, mGasolinaMax, mSoundManager);
-                ColisionManager::checkEnemyCollisions(mPlayer, mEnemigos, mGasolinaActual, 25.0f, mSoundManager);
+                ColisionManager::checkEnemyCollisions(mPlayer, mEnemigos, mGasolinaActual, 32.0f, mSoundManager);
                 
                 updateGasolinaBar();
             }
