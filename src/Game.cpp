@@ -81,6 +81,10 @@ Game::Game()
     // Inicializar SoundManager
     mSoundManager.init();
     
+    // Iniciar música de fondo en el menú (volumen alto 85%)
+    mSoundManager.startBackgroundMusic();
+    mSoundManager.setBackgroundMusicVolume(85.0f);
+    
     // Cargar texturas de enemigos
     mEnemyTextures.resize(7);
     if (!mEnemyTextures[0].loadFromFile("assets/images/Ambulance.png")) { exit(1); }
@@ -123,6 +127,7 @@ void Game::startGame() {
     mSoundManager.playEngineRoaringSound();  // Sonido de motor rugiendo al empezar
     mCountdown.start(mSoundManager);  // Iniciar countdown con sonido
     mSoundManager.startEngineLoop();  // Iniciar sonido de motor
+    mSoundManager.setBackgroundMusicVolume(25.0f);  // Bajar música durante el juego
     mGasolinaActual = mGasolinaMax;
     mHighScoreInicial = mHighScore.getHighScore();  // Guardar high score antes de empezar
     mIsTouchingBoundary = false;
@@ -213,6 +218,7 @@ void Game::processEvents() {
                         mGameState = GameState::Paused;
                         mSoundManager.pauseEngineLoop();
                         mSoundManager.pauseCountdownSound();
+                        mSoundManager.setBackgroundMusicVolume(85.0f);  // Subir volumen en pausa
                     }
                 }
                 break;
@@ -222,6 +228,7 @@ void Game::processEvents() {
                         mGameState = GameState::Playing;
                         mSoundManager.resumeEngineLoop();
                         mSoundManager.resumeCountdownSound();
+                        mSoundManager.setBackgroundMusicVolume(25.0f);  // Bajar volumen al reanudar
                     }
                     if (event.key.code == sf::Keyboard::Up) {
                         mPauseMenu.moveUp();
@@ -236,6 +243,7 @@ void Game::processEvents() {
                                 mGameState = GameState::Playing;
                                 mSoundManager.resumeEngineLoop();
                                 mSoundManager.resumeCountdownSound();
+                                mSoundManager.setBackgroundMusicVolume(25.0f);  // Bajar volumen al reanudar
                                 break;
                             case 1:  // Reiniciar
                                 startGame();
@@ -243,6 +251,8 @@ void Game::processEvents() {
                             case 2:  // Salir al Menu
                                 mGameState = GameState::Menu;
                                 mSoundManager.stopEngineLoop();
+                                mSoundManager.startBackgroundMusic();  // Reiniciar música
+                                mSoundManager.setBackgroundMusicVolume(85.0f);  // Volumen alto en menú
                                 break;
                         }
                     }
@@ -269,6 +279,8 @@ void Game::processEvents() {
                                 break;
                             case 1:  // Salir al Menu
                                 mGameState = GameState::Menu;
+                                mSoundManager.startBackgroundMusic();  // Reiniciar música
+                                mSoundManager.setBackgroundMusicVolume(85.0f);  // Volumen alto en menú
                                 break;
                         }
                     }
@@ -325,6 +337,7 @@ void Game::update(sf::Time dt) {
                     }
                     
                     mSoundManager.stopEngineLoop();  // Detener sonido de motor
+                    mSoundManager.stopBackgroundMusic();  // Detener música de fondo
                     return; 
                 }
 

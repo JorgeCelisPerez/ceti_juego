@@ -27,6 +27,13 @@ public:
     void pauseCountdownSound();
     void resumeCountdownSound();
     
+    // Sistema de música de fondo
+    void startBackgroundMusic();
+    void stopBackgroundMusic();
+    void pauseBackgroundMusic();
+    void resumeBackgroundMusic();
+    void setBackgroundMusicVolume(float volume);  // 0.0f a 100.0f
+    
 private:
     sf::SoundBuffer mItemBuffer;
     sf::Sound mItemSound;
@@ -49,6 +56,9 @@ private:
     // Sistema de loop de motor
     sf::Music mEngineLoop;
     std::vector<std::string> mEngineLoopFiles;
+    
+    // Música de fondo
+    sf::Music mBackgroundMusic;
     
     float mVolume;
 };

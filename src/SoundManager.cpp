@@ -34,7 +34,7 @@ bool SoundManager::init() {
     }
     
     mCrashSound.setBuffer(mCrashBuffer);
-    mCrashSound.setVolume(mVolume);
+    mCrashSound.setVolume(mVolume * 1.5f);  // Volumen aumentado al 150%
     
     // Cargar sonido de game over
     if (!mGameOverBuffer.loadFromFile("assets/sounds/losetrumpet.wav")) {
@@ -71,8 +71,17 @@ bool SoundManager::init() {
     mEngineLoop.setLoop(true);  // SFML maneja el loop automáticamente
     mEngineLoop.setVolume(mVolume * 0.65f);  // Volumen del motor al 65%
     
+    // Cargar música de fondo
+    if (!mBackgroundMusic.openFromFile("assets/sounds/simple-rock-riff-loop-289668.wav")) {
+        std::cerr << "Error: No se pudo cargar la música de fondo" << std::endl;
+        return false;
+    }
+    mBackgroundMusic.setLoop(true);  // Loop infinito
+    mBackgroundMusic.setVolume(mVolume * 0.85f);  // Volumen inicial al 85%
+    
     std::cout << "SoundManager inicializado correctamente" << std::endl;
     std::cout << "Loop de motor: car-acceleration-inside.wav" << std::endl;
+    std::cout << "Música de fondo: simple-rock-riff-loop-289668.wav" << std::endl;
     return true;
 }
 
@@ -138,9 +147,35 @@ void SoundManager::setVolume(float volume) {
     mVolume = volume;
     mItemSound.setVolume(mVolume);
     mCountdownSound.setVolume(mVolume);
-    mCrashSound.setVolume(mVolume);
+    mCrashSound.setVolume(mVolume * 1.5f);  // Volumen aumentado al 150%
     mGameOverSound.setVolume(mVolume);
     mNewRecordSound.setVolume(mVolume);
     mEngineRoaringSound.setVolume(mVolume * 0.6f);
     mEngineLoop.setVolume(mVolume * 0.65f);  // Motor al 65%
+}
+
+void SoundManager::startBackgroundMusic() {
+    if (mBackgroundMusic.getStatus() != sf::Music::Playing) {
+        mBackgroundMusic.play();
+    }
+}
+
+void SoundManager::stopBackgroundMusic() {
+    mBackgroundMusic.stop();
+}
+
+void SoundManager::pauseBackgroundMusic() {
+    if (mBackgroundMusic.getStatus() == sf::Music::Playing) {
+        mBackgroundMusic.pause();
+    }
+}
+
+void SoundManager::resumeBackgroundMusic() {
+    if (mBackgroundMusic.getStatus() == sf::Music::Paused) {
+        mBackgroundMusic.play();
+    }
+}
+
+void SoundManager::setBackgroundMusicVolume(float volume) {
+    mBackgroundMusic.setVolume(volume);
 }
