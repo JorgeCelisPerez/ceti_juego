@@ -48,3 +48,11 @@ Librerías: iostream, cstdlib, algorithm, sstream, fstream, cmath
     Para el sonido de rugido que suena al presionar empezar es del autor DRAGON-STUDIO en https://pixabay.com/es/sound-effects/car-engine-roaring-376881/
 
     Lo demas que no aparece aqui citado fue creado directamente con Gemini.
+
+Por ultimo la musica de fondo del juego es del autor Cyberwave-Orchestra en https://pixabay.com/es/music/rock-simple-rock-riff-loop-289668/
+
+Agradecimientos
+
+Se agradece al profesor Jose Ramon Navarro por el apyo, segimiento y consejos a lo largo del semestre, las cuales sirvieron para dar bases y camino a la creacion de este proyecto y su correcta finalizacion.
+
+Tambien agradecimientos a Carlo Francisco Vicencio Martinez por la ayuda a lo largo de la realizacion en temas de instalaciones y dudas que iban surguiendo.
