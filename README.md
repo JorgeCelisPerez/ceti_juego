@@ -5,11 +5,11 @@ Juego de conducción donde controlas un coche con las flechas del teclado en una
 
     Controles
 Los controles del juego son sencillos para la comodidad de cualquier usuario
-    Lista de controles.
-        Flechas del teclado: izquierda y derecha.
-        Enter para seleccionar en el menú.
-        F11 para cambiar entre pantalla completa y modo ventana.
-        Escondida está la función de la tecla F1 que permite observar las hitboxes; de igual forma está escondida la funcionalidad para borrar el mayor puntaje registrado. Esto se hace estando en la pantalla del menú principal y presionando la tecla Suprimir o Delete, lo cual reinicia el .bat que tenía guardada la puntuación.
+    Lista de controles:
+       * Flechas del teclado: izquierda y derecha.
+       * Enter para seleccionar en el menú.
+       * F11 para cambiar entre pantalla completa y modo ventana.
+       * Escondida está la función de la tecla F1 que permite observar las hitboxes; de igual forma está escondida la funcionalidad para borrar el mayor puntaje registrado. Esto se hace estando en la pantalla del menú principal y presionando la tecla Suprimir o Delete, lo cual reinicia el .bat que tenía guardada la puntuación.
 
     Equipo
 Raúl Alejandro Jiménez Gómez
